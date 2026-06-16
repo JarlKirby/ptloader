@@ -632,9 +632,10 @@ function toggleHistoryStatus(i) {
 
 function clearHistory() {
   if (confirm("Are you sure you want to clear your entire transaction history log? This cannot be undone.")) {
-    history = [];
+    txHistory = [];
     LS.set('fl_history', txHistory);
     renderHistoryFull();
+    renderBanner();
     showToast('Transaction history cleared');
   }
 }
