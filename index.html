@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Family Load Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-mid: #9FE1CB;
+    --red: #D85A30; --red-dark: #993C1D; --red-light: #FAECE7;
+    --blue-light: #E6F1FB; --blue: #185FA5;
+    --amber-light: #FAEEDA; --amber: #854F0B;
+    --purple-light: #EEEDFE; --purple: #3C3489;
+    --bg: #f9f9f8; --surface: #ffffff;
+    --border: rgba(0,0,0,0.12); --border-md: rgba(0,0,0,0.22);
+    --text: #1a1a18; --text-secondary: #6b6b67; --text-hint: #9e9e9a;
+    --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+    --mono: 'JetBrains Mono', 'Fira Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #18181a; --surface: #232325;
+      --border: rgba(255,255,255,0.1); --border-md: rgba(255,255,255,0.2);
+      --text: #f0f0ec; --text-secondary: #a0a09c; --text-hint: #666663;
+      --green-light: #0d3d2b; --red-light: #3d1a0d; --blue-light: #0d2240;
+      --amber-light: #3d2600; --purple-light: #1e1a40;
+    }
+  }
+
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* ── Header ── */
+  .app-header {
+    background: var(--surface); border-bottom: 0.5px solid var(--border);
+    padding: 0 20px; display: flex; align-items: stretch;
+    justify-content: space-between; position: sticky; top: 0; z-index: 10; height: 54px;
+  }
+  .app-logo { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 600; color: var(--text); }
+  .app-logo .icon-wrap { width: 32px; height: 32px; background: var(--green); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; }
+  .app-logo svg { width: 17px; height: 17px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .header-badge { font-size: 12px; font-weight: 500; background: var(--green-light); color: var(--green-dark); padding: 4px 12px; border-radius: 999px; }
+
+  /* ── Nav tabs ── */
+  .nav-tabs { display: flex; border-bottom: 0.5px solid var(--border); background: var(--surface); }
+  .nav-tab { flex: 1; padding: 12px 0; font-size: 13px; font-weight: 500; color: var(--text-hint); border: none; background: transparent; cursor: pointer; font-family: var(--font); border-bottom: 2px solid transparent; transition: all .15s; }
+  .nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* ── Pages ── */
+  .page { display: none; } .page.active { display: block; }
+  .main { max-width: 640px; margin: 0 auto; padding: 20px 16px 80px; }
+
+  /* ── Section label ── */
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 10px; margin-top: 24px; }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── Filter Row for History ── */
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
+  .filter-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 6px 12px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all .15s; font-family: var(--font); }
+  .filter-btn:hover { border-color: var(--border-md); color: var(--text); }
+  .filter-btn.active { background: var(--text); border-color: var(--text); color: var(--surface); }
+  @media (prefers-color-scheme: dark) {
+    .filter-btn.active { background: #f0f0ec; border-color: #f0f0ec; color: #18181a; }
+  }
+
+  /* ── Member cards ── */
+  .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
+  .member-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: border-color .15s; position: relative; user-select: none; }
+  .member-card:hover { border-color: var(--border-md); }
+  .member-card.selected { border: 2px solid var(--green); }
+  .check-badge { position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; }
+  .check-badge svg { width: 11px; height: 11px; stroke: #fff; stroke-width: 2.5; fill: none; }
+  .member-card.selected .check-badge { opacity: 1; }
+  .member-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+  .member-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .member-num { font-size: 11.5px; color: var(--text-secondary); font-family: var(--mono); margin-bottom: 6px; }
+  .sim-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; display: inline-block; }
+  .sim-tm { background: var(--blue-light); color: var(--blue); }
+  .delete-member { position: absolute; bottom: 9px; right: 9px; width: 22px; height: 22px; border-radius: 50%; background: transparent; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity .15s; color: var(--text-hint); }
+  .delete-member svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .member-card:hover .delete-member { opacity: 1; }
+  .delete-member:hover { color: var(--red); }
+  .add-card { background: var(--surface); border: 0.5px dashed var(--border-md); border-radius: var(--radius-lg); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px; cursor: pointer; gap: 6px; color: var(--text-hint); font-size: 13px; font-weight: 500; transition: border-color .15s, color .15s; }
+  .add-card:hover { border-color: var(--green); color: var(--green); }
+  .add-card svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+  /* ── Add form panel ── */
+  .add-form-panel { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; display: none; margin-top: 10px; }
+  .add-form-panel.open { display: block; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-grid label { display: flex; flex-direction: column; gap: 5px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+  .form-grid input, .form-grid select { padding: 9px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--bg); font-size: 14px; color: var(--text); font-family: var(--font); outline: none; transition: border-color .15s; }
+  .form-grid input:focus, .form-grid select:focus { border-color: var(--green); }
+  .form-btns { display: flex; gap: 8px; }
+  .form-tabs { display: flex; gap: 4px; margin-bottom: 14px; background: var(--bg); border-radius: var(--radius-md); padding: 3px; }
+  .form-tab { flex: 1; padding: 7px; border: none; border-radius: calc(var(--radius-md) - 2px); background: transparent; font-size: 13px; font-weight: 500; color: var(--text-secondary); cursor: pointer; font-family: var(--font); transition: all .15s; }
+  .form-tab.active { background: var(--surface); color: var(--text); box-shadow: 0 0 0 0.5px var(--border); }
+  .bulk-hint { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.5; }
+  #bulkNums { width: 100%; padding: 10px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--bg); font-size: 13px; color: var(--text); font-family: var(--mono); resize: vertical; outline: none; line-height: 1.7; transition: border-color .15s; }
+  #bulkNums:focus { border-color: var(--green); }
+  .bulk-meta { margin-top: 10px; }
+  .bulk-count { font-size: 12px; font-weight: 600; color: var(--text-hint); }
+  .bulk-count.ok { color: var(--green-dark); }
+  .bulk-count.warn { color: #854F0B; }
+  .bulk-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .preview-pill { font-size: 12px; font-family: var(--mono); padding: 4px 10px; border-radius: 999px; background: var(--green-light); color: var(--green-dark); }
+  .preview-pill.invalid { background: var(--red-light); color: var(--red-dark); }
+
+  /* ── Amount ── */
+  .amount-section { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+  .amount-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .amount-top-label { font-size: 13px; font-weight: 500; color: var(--text); }
+  .custom-input-wrap { display: flex; align-items: center; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 0 10px; gap: 4px; }
+  .custom-input-wrap:focus-within { border-color: var(--green); }
+  .custom-input-wrap span { font-size: 15px; font-weight: 500; color: var(--text-secondary); }
+  .custom-input-wrap input { width: 90px; padding: 8px 4px; border: none; background: transparent; font-size: 15px; font-weight: 500; color: var(--text); font-family: var(--font); outline: none; }
+  .preset-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .preset-btn { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 8px 16px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all .15s; font-family: var(--font); }
+  .preset-btn:hover { border-color: var(--green); color: var(--green); }
+  .preset-btn.active { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+  .add-preset-btn { background: transparent; border: 0.5px dashed var(--border-md); border-radius: var(--radius-md); padding: 8px 14px; font-size: 14px; color: var(--text-hint); cursor: pointer; font-family: var(--font); transition: all .15s; }
+  .add-preset-btn:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── Banner ── */
+  .selection-banner { background: var(--green-light); border: 0.5px solid var(--green-mid); border-radius: var(--radius-lg); padding: 14px 16px; display: none; align-items: center; justify-content: space-between; gap: 12px; }
+  .selection-banner.visible { display: flex; }
+  .banner-label { font-size: 14px; font-weight: 500; color: var(--green-dark); }
+  .banner-names { font-size: 13px; color: var(--green-dark); margin-top: 2px; }
+  .total-pill { background: var(--green); color: #fff; font-size: 14px; font-weight: 600; padding: 5px 14px; border-radius: 999px; white-space: nowrap; }
+
+  /* ── Retailer info ── */
+  .retailer-info { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; display: flex; align-items: flex-start; gap: 12px; }
+  .retailer-info svg { width: 20px; height: 20px; flex-shrink: 0; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; margin-top: 2px; }
+  .retailer-label { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .retailer-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Retailer SIM selector */
+  .retailer-selector { display: flex; gap: 10px; }
+  .rsim-card { flex: 1; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: all .15s; position: relative; }
+  .rsim-card:hover { border-color: var(--border-md); }
+  .rsim-card.active { border: 2px solid var(--green); background: var(--green-light); }
+  .rsim-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .rsim-label { font-size: 14px; font-weight: 500; color: var(--text); }
+  .rsim-card.active .rsim-label { color: var(--green-dark); }
+  .rsim-identity-wrap { margin-top: 8px; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: var(--radius-md); font-size: 11px; font-family: var(--mono); color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
+  .rsim-card.active .rsim-identity-wrap { background: rgba(29, 158, 117, 0.08); }
+  .rsim-identity-val { font-weight: 600; color: var(--text); }
+  .rsim-card.active .rsim-identity-val { color: var(--green-dark); }
+  .rsim-shortcode {font-size: 12px; font-family: var(--mono); color: var(--text-secondary); margin-top: 2px; }
+  .rsim-card.active .rsim-shortcode { color: var(--green); }
+  .rsim-active-badge { font-size: 10px; font-weight: 600; background: var(--green); color: #fff; padding: 2px 7px; border-radius: 999px; }
+  .rsim-edit { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: var(--text-hint); opacity: 0; transition: opacity .15s; padding: 4px; }
+  .rsim-card:hover .rsim-edit { opacity: 1; }
+  .rsim-edit:hover { color: var(--green); }
+  .rsim-edit svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  /* ── Buttons ── */
+  .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--radius-lg); border: 0.5px solid var(--border); cursor: pointer; font-size: 14px; font-weight: 500; font-family: var(--font); background: var(--surface); color: var(--text); transition: all .15s; }
+  .btn:hover { background: var(--bg); border-color: var(--border-md); }
+  .btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+  .btn-green:hover { background: var(--green-dark); border-color: var(--green-dark); }
+  .btn-red { background: var(--red); border-color: var(--red); color: #fff; }
+  .btn-red:hover { background: var(--red-dark); border-color: var(--red-dark); }
+  .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: var(--radius-md); }
+  .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .action-grid .full { grid-column: 1 / -1; }
+  .sel-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+
+  /* ── History ── */
+  .history-list { display: flex; flex-direction: column; gap: 8px; }
+  .history-item { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px 14px; display: flex; align-items: center; gap: 12px; }
+  .h-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--green); cursor: pointer; transition: background .2s; }
+  .h-dot.pending { background: #EF9F27; }
+  .h-dot.failed  { background: var(--red); }
+  .h-dot.success { background: var(--green); }
+  .h-info { flex: 1; }
+  .h-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .h-sub { font-size: 12px; color: var(--text-secondary); font-family: var(--mono); }
+  .h-amt { font-size: 15px; font-weight: 600; color: var(--text); }
+  .h-status { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .h-status.pending { background: var(--amber-light); color: var(--amber); }
+  .h-status.success { background: var(--green-light); color: var(--green-dark); }
+  .h-status.failed  { background: var(--red-light); color: var(--red-dark); }
+  .empty-state { text-align: center; padding: 24px 0; color: var(--text-hint); font-size: 14px; }
+
+  /* ── SIM Reader page ── */
+  .sim-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; }
+  .sim-card h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .sim-card p  { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .connect-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-hint); flex-shrink: 0; }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 0 3px var(--green-light); }
+  .status-dot.error     { background: var(--red); }
+  .status-text { font-size: 13px; color: var(--text-secondary); }
+  .sms-log { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 12px; color: var(--text-secondary); min-height: 160px; max-height: 320px; overflow-y: auto; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
+  .sms-entry { padding: 10px 12px; border-bottom: 0.5px solid var(--border); }
+  .sms-entry:last-child { border-bottom: none; }
+  .sms-from { font-size: 11px; font-weight: 600; color: var(--text-hint); margin-bottom: 3px; }
+  .sms-body { font-size: 13px; color: var(--text); }
+  .sms-body.success-msg { color: var(--green-dark); }
+  .sms-body.failed-msg  { color: var(--red-dark); }
+  .sms-time { font-size: 11px; color: var(--text-hint); margin-top: 3px; }
+  .at-log { background: #0f0f10; border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 11px; color: #7cfc9a; min-height: 80px; max-height: 160px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+  .at-row-sent { color: #6bbfff; }
+  .at-row-recv { color: #7cfc9a; }
+  .at-row-err  { color: #ff7c7c; }
+  .info-box { background: var(--blue-light); border: 0.5px solid #B5D4F4; border-radius: var(--radius-md); padding: 12px 14px; font-size: 13px; color: var(--blue); line-height: 1.6; }
+  .info-box b { font-weight: 600; }
+
+  /* ── Modal ── */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius-xl); padding: 24px; width: 100%; max-width: 360px; }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  .modal p { font-size: 14px; color: var(--text-secondary); margin-bottom: 18px; }
+  .modal-input-wrap { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; }
+  .modal-input-wrap span { font-size: 22px; font-weight: 600; color: var(--text-secondary); }
+  .modal-input-wrap input { flex: 1; padding: 12px; font-size: 22px; font-weight: 600; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font-family: var(--font); outline: none; }
+  .modal-input-wrap input:focus { border-color: var(--green); }
+  .modal-btns { display: flex; gap: 8px; }
+
+  /* ── Toast ── */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(10px); background: #1a1a18; color: #fff; padding: 11px 20px; border-radius: 999px; font-size: 14px; font-weight: 500; z-index: 100; opacity: 0; transition: opacity .25s, transform .25s; pointer-events: none; white-space: nowrap; font-family: var(--font); }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  hr.divider { border: none; border-top: 0.5px solid var(--border); margin: 8px 0; }
+  @media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } .action-grid { grid-template-columns: 1fr; } .action-grid .full { grid-column: 1; } }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-logo">
+    <div class="icon-wrap">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    Family Load
+  </div>
+  <div class="header-right">
+    <span class="header-badge" id="activeRouteHeaderBadge">Active: SIM 1 — Globe</span>
+  </div>
+</header>
+
+<div class="nav-tabs">
+  <button class="nav-tab active" onclick="showPage('load')">Load</button>
+  <button class="nav-tab" onclick="showPage('history')">History</button>
+  <button class="nav-tab" onclick="showPage('sim')">SIM Reader</button>
+</div>
+
+<div class="page active" id="page-load">
+<div class="main">
+
+  <div class="section-label">Family members</div>
+  <div class="sel-row">
+    <button class="btn btn-sm" onclick="selectAll()">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Select all
+    </button>
+    <button class="btn btn-sm" onclick="clearSel()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clear
+    </button>
+    <button class="btn btn-sm btn-red" id="btnDeleteAll" onclick="deleteAllMembers()" style="margin-left: auto; display: none;">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Delete all
+    </button>
+  </div>
+  <div class="members-grid" id="membersGrid"></div>
+
+  <div class="add-form-panel" id="addFormPanel">
+    <div class="form-tabs">
+      <button class="form-tab active" id="tabSingle" onclick="switchTab('single')">Single member</button>
+      <button class="form-tab" id="tabBulk" onclick="switchTab('bulk')">Paste numbers</button>
+    </div>
+    <div id="paneSingle">
+      <div class="form-grid">
+        <label>Name<input type="text" id="newName" placeholder="e.g. Nanay" /></label>
+        <label>Mobile number<input type="tel" id="newNum" placeholder="09XX XXX XXXX" /></label>
+        <label>SIM type<select id="newSim"><option value="TM">TM</option></select></label>
+        <label>Color
+          <select id="newColor">
+            <option value="teal">Teal</option><option value="blue">Blue</option>
+            <option value="coral">Coral</option><option value="amber">Amber</option><option value="purple">Purple</option>
+          </select>
+        </label>
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-green btn-sm" onclick="addMember()">Save member</button>
+        <button class="btn btn-sm" onclick="toggleAddForm()">Cancel</button>
+      </div>
+    </div>
+    <div id="paneBulk" style="display:none">
+      <p class="bulk-hint">Paste any number of SIMs — one per line, or separated by commas/spaces. No limit.</p>
+      <textarea id="bulkNums" placeholder="09171234567&#10;09091234568&#10;09171234569&#10;..." rows="8" oninput="onBulkInput()"></textarea>
+      <div class="bulk-meta">
+        <div class="form-grid" style="margin-bottom:0">
+          <label>SIM type<select id="bulkSim"><option value="TM">TM</option></select></label>
+          <label style="justify-content:flex-end;align-items:flex-end"><span class="bulk-count" id="bulkCount">0 numbers</span></label>
+        </div>
+      </div>
+      <div id="bulkPreview" class="bulk-preview"></div>
+      <div class="form-btns" style="margin-top:10px">
+        <button class="btn btn-green btn-sm" onclick="addBulkMembers()">Add all numbers</button>
+        <button class="btn btn-sm" onclick="toggleAddForm()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Load amount</div>
+  <div class="amount-section">
+    <div class="amount-top">
+      <span class="amount-top-label">Custom amount</span>
+      <div class="custom-input-wrap">
+        <span>₱</span>
+        <input type="number" id="customAmt" min="1" placeholder="0" oninput="onCustomInput()" />
+      </div>
+    </div>
+    <div class="preset-row" id="presetRow"></div>
+  </div>
+
+  <div class="selection-banner" id="selBanner">
+    <div>
+      <div class="banner-label" id="bannerLabel"></div>
+      <div class="banner-names" id="bannerNames"></div>
+    </div>
+    <div class="total-pill" id="totalPill"></div>
+  </div>
+
+  <div class="section-label">Retailer SIM</div>
+  <div class="retailer-selector" id="retailerSelector"></div>
+  <div id="retailerEditPanel" style="display:none">
+    <div class="sim-card" style="margin-top:10px">
+      <h3 id="retailerEditTitle">Edit SIM</h3>
+      <div class="form-grid" style="margin-bottom:10px">
+        <label>Label<input type="text" id="rLabel" placeholder="e.g. SIM 1 - Globe" /></label>
+        <label>Shortcode<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
+      </div>
+      <div class="form-btns">
+        <button class="btn btn-green btn-sm" onclick="saveRetailerSIM()">Save</button>
+        <button class="btn btn-sm" onclick="closeRetailerEdit()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Actions</div>
+  <div class="action-grid">
+    <button class="btn btn-green full" onclick="loadSelected()">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Load selected via SMS &nbsp;<span id="selCountBadge" style="background:rgba(255,255,255,0.25);border-radius:999px;padding:1px 9px;font-size:13px">0</span>
+    </button>
+    <button class="btn btn-red full" onclick="loadAll()">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Load ALL family via SMS
+    </button>
+  </div>
+
+</div>
+</div>
+
+<div class="page" id="page-history">
+<div class="main">
+  <div class="section-label" style="margin-top:0">Load history</div>
+  
+  <div class="sel-row" style="margin-bottom: 14px;">
+    <div class="filter-row" id="historyFilters">
+      <button class="filter-btn active" onclick="setHistoryFilter('all')">All</button>
+      <button class="filter-btn" onclick="setHistoryFilter('success')">Success</button>
+      <button class="filter-btn" onclick="setHistoryFilter('pending')">Pending</button>
+      <button class="filter-btn" onclick="setHistoryFilter('failed')">Failed</button>
+    </div>
+    
+    <button class="btn btn-sm btn-red" id="btnClearHistory" onclick="clearHistory()" style="margin-left: auto; display: none;">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Clear history
+    </button>
+  </div>
+
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tap the colored dot on any item entry to toggle its status state manually.</p>
+  <div class="history-list" id="historyListFull"></div>
+</div>
+</div>
+
+<div class="page" id="page-sim">
+<div class="main">
+
+  <div class="section-label" style="margin-top:0">SIM card reader</div>
+
+  <div class="info-box" style="margin-bottom:14px">
+    <b>Dynamic Hardware Processing:</b> Connect your USB SIM reader, click "Connect SIM Reader", and authorize the respective serial port line. The system automatically reads the phone profile straight from your chip hardware identity space via background processes.
+  </div>
+
+  <div class="sim-card">
+    <h3>Connection</h3>
+    <p>Uses the Web Serial API (Chrome/Edge only). Make sure your SIM reader is plugged in before connecting.</p>
+    <div class="connect-row">
+      <div class="status-dot" id="simStatusDot"></div>
+      <span class="status-text" id="simStatusText">Not connected</span>
+      <button class="btn btn-green btn-sm" id="connectBtn" onclick="connectSIM()">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        Connect SIM Reader
+      </button>
+      <button class="btn btn-sm" id="disconnectBtn" onclick="disconnectSIM()" style="display:none">Disconnect</button>
+    </div>
+  </div>
+
+  <div class="sim-card">
+    <h3>Incoming SMS from 2+</h3>
+    <p style="margin-bottom:12px">Replies from your retailer load shortcode will appear here and automatically update your history.</p>
+    <div id="smsList" style="border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
+      <div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>
+    </div>
+  </div>
+
+  <div class="sim-card">
+    <h3>AT command log</h3>
+    <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
+    <div class="at-log" id="atLog">Waiting for connection…</div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CNUM')">Read Identity (AT+CNUM)</button>
+      <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<div class="modal-bg" id="presetModal">
+  <div class="modal">
+    <h2>Add preset amount</h2>
+    <p>Enter a custom load amount to add as a quick preset.</p>
+    <div class="modal-input-wrap">
+      <span>₱</span>
+      <input type="number" id="presetInput" min="1" placeholder="0" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-green" style="flex:1" onclick="savePreset()">Add preset</button>
+      <button class="btn" style="flex:1" onclick="closePresetModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ Storage ══════════════════════════════════════════════════════════════════
+const LS = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v))
+};
+
+// ══ State ═════════════════════════════════════════════════════════════════════
+let members = LS.get('fl_members') || [];
+let history = LS.get('fl_history') || [];
+let presets = LS.get('fl_presets') || [1, 20, 50, 100, 150, 300];
+let selected = [];
+let amount   = 1;
+let currentHistoryFilter = 'all';
+
+// ══ Colors ════════════════════════════════════════════════════════════════════
+const COLORS = {
+  teal:   { bg:'#E1F5EE', text:'#0F6E56' },
+  blue:   { bg:'#E6F1FB', text:'#185FA5' },
+  coral:  { bg:'#FAECE7', text:'#993C1D' },
+  amber:  { bg:'#FAEEDA', text:'#854F0B' },
+  purple: { bg:'#EEEDFE', text:'#3C3489' }
+};
+const COLORS_LIST = ['teal','blue','coral','amber','purple'];
+const CHECK_SVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+// ══ Helpers ═══════════════════════════════════════════════════════════════════
+function nowStr() {
+  const d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
+  return `Today ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
+}
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function autoColor(i) { return COLORS_LIST[i % COLORS_LIST.length]; }
+
+function normalizePhoneNumber(num) {
+  let clean = num.replace(/[-\s]/g, '');
+  if (clean.startsWith('+63')) {
+    clean = '0' + clean.slice(3);
+  } else if (clean.startsWith('63')) {
+    clean = '0' + clean.slice(2);
+  }
+  return clean;
+}
+
+// ══ Pages ═════════════════════════════════════════════════════════════════════
+const navTabs = document.querySelectorAll('.nav-tab');
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  navTabs.forEach((t,i)=>t.classList.toggle('active', ['load','history','sim'][i]===name));
+  if (name==='history') renderHistoryFull();
+}
+
+// ══ Render: Load page ═════════════════════════════════════════════════════════
+function render() { renderMembers(); renderPresets(); renderBanner(); }
+
+function renderMembers() {
+  const grid = document.getElementById('membersGrid');
+  const btnDeleteAll = document.getElementById('btnDeleteAll');
+  
+  if (members.length > 0) {
+    btnDeleteAll.style.display = 'inline-flex';
+  } else {
+    btnDeleteAll.style.display = 'none';
+  }
+
+  let html = members.map(m => {
+    const c = COLORS[m.color]||COLORS.teal;
+    const sel = selected.includes(m.id);
+    return `<div class="member-card${sel?' selected':''}" onclick="toggleSelect(${m.id})">
+      <div class="check-badge">${CHECK_SVG}</div>
+      <button class="delete-member" onclick="deleteMember(event,${m.id})" title="Remove">
+        <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      </button>
+      <div class="member-avatar" style="background:${c.bg};color:${c.text}">${m.name.slice(0,2).toUpperCase()}</div>
+      <div class="member-name">${m.name}</div>
+      <div class="member-num">${m.num}</div>
+      <span class="sim-badge sim-tm">TM</span>
+    </div>`;
+  }).join('');
+  html += `<div class="add-card" onclick="toggleAddForm()">
+    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    ${members.length===0?'Add your first family member':'Add member'}
+  </div>`;
+  grid.innerHTML = html;
+}
+
+function renderPresets() {
+  const row = document.getElementById('presetRow');
+  let html = presets.map(p=>`<button class="preset-btn${amount===p?' active':''}" onclick="selectPreset(${p})">₱${p}</button>`).join('');
+  html += `<button class="add-preset-btn" onclick="openPresetModal()">+ Add</button>`;
+  row.innerHTML = html;
+  const ci = document.getElementById('customAmt');
+  if (document.activeElement!==ci) ci.value = amount||'';
+}
+
+function renderBanner() {
+  const banner = document.getElementById('selBanner');
+  const count  = selected.length;
+  document.getElementById('selCountBadge').textContent = count;
+  if (!count) { banner.classList.remove('visible'); return; }
+  banner.classList.add('visible');
+  const names = selected.map(id=>members.find(m=>m.id===id)?.name).filter(Boolean);
+  document.getElementById('bannerLabel').textContent = `${count} member${count>1?'s':''} selected`;
+  document.getElementById('bannerNames').textContent = names.join(', ');
+  document.getElementById('totalPill').textContent   = `Total ₱${count*(amount||0)}`;
+}
+
+// ══ Render: History ═══════════════════════════════════════════════════════════
+function setHistoryFilter(filterValue) {
+  currentHistoryFilter = filterValue;
+  
+  // Highlight active filter button
+  const buttons = document.querySelectorAll('#historyFilters .filter-btn');
+  buttons.forEach(btn => {
+    const txt = btn.textContent.toLowerCase();
+    btn.classList.toggle('active', txt === filterValue);
+  });
+  
+  renderHistoryFull();
+}
+
+function renderHistoryFull() {
+  const list = document.getElementById('historyListFull');
+  const btnClearHistory = document.getElementById('btnClearHistory');
+  
+  // Show or hide clear history option based on full transaction status counts
+  if (history.length > 0) {
+    btnClearHistory.style.display = 'inline-flex';
+  } else {
+    btnClearHistory.style.display = 'none';
+  }
+
+  // Apply visual filtering rules
+  const filteredHistory = history.filter(item => {
+    if (currentHistoryFilter === 'all') return true;
+    return item.status === currentHistoryFilter;
+  });
+
+  if (!filteredHistory.length) { 
+    list.innerHTML=`<div class="empty-state">No matching transactions found.</div>`; 
+    return; 
+  }
+
+  list.innerHTML = filteredHistory.map(h => {
+    // Look up absolute original array tracking indices to prevent misalignment when elements cycle
+    const originalIndex = history.findIndex(x => x.id === h.id);
+    return `
+    <div class="history-item">
+      <div class="h-dot ${h.status}" onclick="toggleHistoryStatus(${originalIndex})" title="Click to toggle status"></div>
+      <div class="h-info">
+        <div class="h-name">${h.name}</div>
+        <div class="h-sub">${h.num} &middot; ${h.date}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="h-amt">₱${h.amt}</div>
+        <span class="h-status ${h.status}">${h.status==='pending'?'Pending':h.status==='success'?'Success':'Failed'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleHistoryStatus(i) {
+  if (i < 0 || i >= history.length) return;
+  const cycle = { pending:'success', success:'failed', failed:'pending' };
+  history[i].status = cycle[history[i].status] || 'pending';
+  LS.set('fl_history', history);
+  renderHistoryFull();
+}
+
+function clearHistory() {
+  if (confirm("Are you sure you want to clear your entire transaction history log? This cannot be undone.")) {
+    history = [];
+    LS.set('fl_history', history);
+    renderHistoryFull();
+    showToast('Transaction history cleared');
+  }
+}
+
+// ══ Member actions ════════════════════════════════════════════════════════════
+function toggleSelect(id) {
+  selected = selected.includes(id) ? selected.filter(x=>x!==id) : [...selected,id];
+  renderMembers(); renderBanner();
+}
+function selectAll() { selected=members.map(m=>m.id); renderMembers(); renderBanner(); }
+function clearSel()  { selected=[]; renderMembers(); renderBanner(); }
+
+function deleteMember(e,id) {
+  e.stopPropagation();
+  members = members.filter(m=>m.id!==id);
+  selected= selected.filter(x=>x!==id);
+  LS.set('fl_members',members); render(); showToast('Member removed');
+}
+
+function deleteAllMembers() {
+  if (confirm("Are you sure you want to remove ALL family members? This cannot be undone.")) {
+    members = [];
+    selected = [];
+    LS.set('fl_members', members);
+    render();
+    showToast('All family members cleared');
+  }
+}
+
+function toggleAddForm() {
+  const p=document.getElementById('addFormPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) switchTab('single');
+}
+function switchTab(tab) {
+  document.getElementById('paneSingle').style.display = tab==='single'?'block':'none';
+  document.getElementById('paneBulk').style.display   = tab==='bulk'  ?'block':'none';
+  document.getElementById('tabSingle').classList.toggle('active',tab==='single');
+  document.getElementById('tabBulk').classList.toggle('active',tab==='bulk');
+  if (tab==='bulk') setTimeout(()=>document.getElementById('bulkNums').focus(),50);
+}
+
+function parseBulkNums(raw) {
+  return raw.split(/[\n,\s]+/).map(s=>normalizePhoneNumber(s)).filter(s=>s.length>0);
+}
+function onBulkInput() {
+  const raw=document.getElementById('bulkNums').value;
+  const tokens=[...new Set(parseBulkNums(raw))];
+  const valid  =tokens.filter(t=>/^09\d{9}$/.test(t));
+  const invalid=tokens.filter(t=>t.length>0&&!/^09\d{9}$/.test(t));
+  const el=document.getElementById('bulkCount');
+  el.textContent=`${valid.length} number${valid.length!==1?'s':''}`;
+  el.className='bulk-count'+(valid.length>0?' ok':'');
+  let html=valid.map(n=>`<span class="preview-pill">${n}</span>`).join('');
+  html+=invalid.map(n=>`<span class="preview-pill invalid">${n} ✗</span>`).join('');
+  document.getElementById('bulkPreview').innerHTML=html;
+}
+function addBulkMembers() {
+  const raw=document.getElementById('bulkNums').value;
+  const sim=document.getElementById('bulkSim').value;
+  const nums=[...new Set(parseBulkNums(raw))].filter(t=>/^09\d{9}$/.test(t)); 
+  if (!nums.length){showToast('No valid numbers found');return;}
+  const existing=new Set(members.map(m=>m.num));
+  let added=0;
+  nums.forEach((num,i)=>{
+    if(existing.has(num))return;
+    members.push({id:Date.now()+i,name:`SIM ${num.slice(-4)}`,num,sim,color:autoColor(members.length+i)});
+    added++;
+  });
+  LS.set('fl_members',members);
+  document.getElementById('bulkNums').value='';
+  document.getElementById('bulkPreview').innerHTML='';
+  document.getElementById('bulkCount').textContent='0 numbers';
+  document.getElementById('addFormPanel').classList.remove('open');
+  showToast(added?`${added} number${added>1?'s':''} added!`:'All numbers already exist');
+  renderMembers();
+}
+function addMember() {
+  const name=document.getElementById('newName').value.trim();
+  let num =document.getElementById('newNum').value.trim();
+  const sim =document.getElementById('newSim').value;
+  const color=document.getElementById('newColor').value;
+  if(!name||!num){showToast('Fill in name and number');return;}
+  
+  num = normalizePhoneNumber(num);
+  if(!/^09\d{9}$/.test(num)){showToast('Enter a valid 11-digit PH number (09XX...)');return;}
+  
+  members.push({id:Date.now(),name,num,sim,color});
+  LS.set('fl_members',members);
+  document.getElementById('newName').value='';
+  document.getElementById('newNum').value='';
+  document.getElementById('addFormPanel').classList.remove('open');
+  showToast(`${name} added!`);
+  renderMembers();
+}
+
+// ══ Amount ════════════════════════════════════════════════════════════════════
+function selectPreset(p) { amount=p; document.getElementById('customAmt').value=p; renderPresets(); renderBanner(); }
+function onCustomInput() {
+  const v=parseInt(document.getElementById('customAmt').value,10);
+  amount=isNaN(v)||v<1?0:v;
+  renderPresets(); renderBanner();
+}
+
+// ══ Preset modal ══════════════════════════════════════════════════════════════
+function openPresetModal()  { document.getElementById('presetModal').classList.add('open'); setTimeout(()=>document.getElementById('presetInput').focus(),50); }
+function closePresetModal() { document.getElementById('presetModal').classList.remove('open'); document.getElementById('presetInput').value=''; }
+function savePreset() {
+  const v=parseInt(document.getElementById('presetInput').value,10);
+  if(isNaN(v)||v<1){showToast('Enter a valid amount');return;}
+  if(presets.includes(v)){showToast('Preset already exists');closePresetModal();return;}
+  presets.push(v); presets.sort((a,b)=>a-b); LS.set('fl_presets',presets);
+  amount=v; document.getElementById('customAmt').value=v;
+  closePresetModal(); renderPresets(); renderBanner(); showToast(`₱${v} added as preset`);
+}
+document.getElementById('presetModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePresetModal();});
+
+// ══ Retailer SIMs ═════════════════════════════════════════════════════════════
+let retailerSIMs = LS.get('fl_retailer_sims') || [
+  { id: 1, label: 'SIM 1 — Globe', shortcode: '2+', identity: null },
+  { id: 2, label: 'SIM 2 — Globe', shortcode: '2+', identity: null }
+];
+let activeRetailerSIM = LS.get('fl_active_retailer') || 1;
+let editingRetailerID = null;
+
+function saveRetailerSIMs() { LS.set('fl_retailer_sims', retailerSIMs); }
+
+function renderRetailerSelector() {
+  const el = document.getElementById('retailerSelector');
+  el.innerHTML = retailerSIMs.map(s => `
+    <div class="rsim-card${activeRetailerSIM===s.id?' active':''}" onclick="setActiveRetailer(${s.id})">
+      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit">
+        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </button>
+      <div class="rsim-top">
+        <span class="rsim-label">${s.label}</span>
+        ${activeRetailerSIM===s.id?'<span class="rsim-active-badge">Active</span>':''}
+      </div>
+      <div class="rsim-shortcode">Shortcode: ${s.shortcode}</div>
+      <div class="rsim-identity-wrap">
+        <span>Identity:</span>
+        <span class="rsim-identity-val">${s.identity || 'Waiting for connection...'}</span>
+      </div>
+    </div>`).join('');
+
+  const headerBadge = document.getElementById('activeRouteHeaderBadge');
+  if (headerBadge) {
+    const activeProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
+    headerBadge.textContent = activeProfile ? `Active: ${activeProfile.label}` : 'No Active Route';
+  }
+}
+
+function setActiveRetailer(id) {
+  activeRetailerSIM = id;
+  LS.set('fl_active_retailer', id);
+  renderRetailerSelector();
+  const sim = retailerSIMs.find(s=>s.id===id);
+  showToast(`Switched active route to ${sim.label}`);
+}
+
+function openRetailerEdit(e, id) {
+  e.stopPropagation();
+  editingRetailerID = id;
+  const sim = retailerSIMs.find(s=>s.id===id);
+  document.getElementById('rLabel').value = sim.label;
+  document.getElementById('rShortcode').value = sim.shortcode;
+  document.getElementById('retailerEditTitle').textContent = `Edit ${sim.label}`;
+  document.getElementById('retailerEditPanel').style.display = 'block';
+}
+
+function closeRetailerEdit() {
+  document.getElementById('retailerEditPanel').style.display = 'none';
+  editingRetailerID = null;
+}
+
+function saveRetailerSIM() {
+  const label = document.getElementById('rLabel').value.trim();
+  const shortcode = document.getElementById('rShortcode').value.trim();
+  if (!label || !shortcode) { showToast('Fill in label and shortcode'); return; }
+  const idx = retailerSIMs.findIndex(s=>s.id===editingRetailerID);
+  if (idx>-1) { 
+    retailerSIMs[idx].label = label; 
+    retailerSIMs[idx].shortcode = shortcode; 
+  }
+  saveRetailerSIMs();
+  closeRetailerEdit();
+  renderRetailerSelector();
+  showToast('SIM profile configurations updated!');
+}
+
+function getActiveShortcode() {
+  const sim = retailerSIMs.find(s=>s.id===activeRetailerSIM);
+  return sim ? sim.shortcode : '2+';
+}
+
+// ══ Load via SMS ══════════════════════════════════════════════════════════════
+function smsLoadURL(num,amt) {
+  return `sms:${getActiveShortcode()}?body=${encodeURIComponent(`LOAD ${num} ${amt}`)}`;
+}
+
+async function sendSMSForMembers(ids) {
+  if(!amount){showToast('Set a load amount first');return false;}
+  
+  if (serialPort && serialPort.writable) {
+    showToast('Auto-detecting active hardware identity profile...');
+    const identityString = await sendATWithReply('AT+CNUM', 2000);
+    
+    let numMatch = identityString.match(/["'](\+?\d+)["']/);
+    let parsedIdentity = numMatch ? numMatch[1] : null;
+
+    if (!parsedIdentity) {
+      const backupMatch = identityString.match(/\+?\d{10,12}/);
+      parsedIdentity = backupMatch ? backupMatch[0] : null;
+    }
+
+    const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
+    if (currentProfile && parsedIdentity) {
+      currentProfile.identity = parsedIdentity;
+      saveRetailerSIMs();
+      renderRetailerSelector();
+      atLog(`✅ SIM Identity Verified: operating line dynamically bound to [${parsedIdentity}]`, 'recv');
+    } else {
+      atLog(`⚠️ Identity Parsing Timeout: Port responded, but no MSISDN registry details were returned.`, 'err');
+    }
+  }
+
+  const now=nowStr();
+  ids.forEach((id,i)=>{
+    const m=members.find(x=>x.id===id); if(!m)return;
+    history.unshift({id:Date.now()+i, name:m.name, num:m.num, amt:amount, date:now, status:'pending'});
+    setTimeout(()=>{ window.location.href=smsLoadURL(m.num,amount); },i*600);
+  });
+  LS.set('fl_history',history); return true;
+}
+
+async function loadSelected() {
+  if(!selected.length){showToast('Select at least one member first');return;}
+  if(!amount){showToast('Set a load amount first');return;}
+  const count=selected.length;
+  const ok=await sendSMSForMembers(selected); if(!ok)return;
+  showToast(`Opening Messages for ${count} member${count>1?'s':''}… send each SMS`);
+  selected=[]; render();
+}
+
+async function loadAll() {
+  if(!members.length){showToast('No family members added yet');return;}
+  if(!amount){showToast('Set a load amount first');return;}
+  const ok=await sendSMSForMembers(members.map(m=>m.id)); if(!ok)return;
+  showToast(`Opening Messages for all ${members.length} members… send each SMS`);
+  selected=[]; render();
+}
+
+// ══ Web Serial — SIM Reader ═══════════════════════════════════════════════════
+let serialPort=null, serialReader=null, serialWriter=null;
+let atBuffer='';
+let receivedSMSList = LS.get('fl_sms') || [];
+let replyResolvers = [];
+
+function atLog(msg, type='recv') {
+  const el=document.getElementById('atLog');
+  const line=document.createElement('div');
+  line.className=`at-row-${type}`;
+  line.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop=el.scrollHeight;
+}
+
+function updateSimStatus(connected, error=false) {
+  const dot=document.getElementById('simStatusDot');
+  const txt=document.getElementById('simStatusText');
+  const cb =document.getElementById('connectBtn');
+  const db =document.getElementById('disconnectBtn');
+  dot.className='status-dot'+(connected?' connected':error?' error':'');
+  txt.textContent=connected?'Connected — listening for SMS':error?'Connection error':'Not connected';
+  cb.style.display=connected?'none':'flex';
+  db.style.display=connected?'flex':'none';
+}
+
+async function connectSIM() {
+  if (!('serial' in navigator)) {
+    showToast('Web Serial not supported — use Chrome or Edge');
+    atLog('ERROR: Web Serial API not available in this browser. Use Chrome or Edge.','err');
+    return;
+  }
+  try {
+    serialPort = await navigator.serial.requestPort();
+    await serialPort.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none' });
+    updateSimStatus(true);
+    atLog('Port opened at 9600 baud','recv');
+    readSerialLoop();
+    await delay(500);
+    await sendAT('AT');
+    await delay(300);
+    await sendAT('AT+CMGF=1');   
+    await delay(300);
+    await sendAT('AT+CNMI=2,2,0,0,0'); 
+    await delay(300);
+    
+    showToast('Reading SIM account hardware profiles...');
+    const setupIdentity = await sendATWithReply('AT+CNUM', 2000);
+    let initializationMatch = setupIdentity.match(/["'](\+?\d+)["']/);
+    let identityResult = initializationMatch ? initializationMatch[1] : null;
+    
+    if(!identityResult) {
+      const backupMatch = setupIdentity.match(/\+?\d{10,12}/);
+      identityResult = backupMatch ? backupMatch[0] : null;
+    }
+
+    const matchedProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
+    if (matchedProfile && identityResult) {
+      matchedProfile.identity = identityResult;
+      saveRetailerSIMs();
+      renderRetailerSelector();
+    }
+    
+    await delay(300);
+    await sendAT('AT+CMGL="ALL"'); 
+  } catch(e) {
+    updateSimStatus(false, true);
+    atLog(`ERROR: ${e.message}`,'err');
+    showToast('Could not connect to SIM reader');
+  }
+}
+
+async function disconnectSIM() {
+  try {
+    if(serialReader){ 
+      await serialReader.cancel(); 
+      await delay(100);
+    }
+    if(serialPort) { await serialPort.close(); serialPort=null; }
+  } catch(e) {}
+  updateSimStatus(false);
+  atLog('Disconnected','recv');
+}
+
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function sendAT(cmd) {
+  if(!serialPort||!serialPort.writable){ showToast('SIM reader not connected'); return; }
+  try {
+    const writer=serialPort.writable.getWriter();
+    const enc=new TextEncoder();
+    atLog(`→ ${cmd}`, 'sent');
+    await writer.write(enc.encode(cmd+'\r\n'));
+    writer.releaseLock();
+  } catch(e){ atLog(`Send error: ${e.message}`,'err'); }
+}
+
+async function sendATWithReply(cmd, timeoutMs = 2000) {
+  if(!serialPort || !serialPort.writable) return '';
+  return new Promise(async (resolve) => {
+    const trackingObj = {
+      buffer: '',
+      resolver: (data) => resolve(data)
+    };
+    replyResolvers.push(trackingObj);
+    
+    setTimeout(() => {
+      replyResolvers = replyResolvers.filter(r => r !== trackingObj);
+      resolve(trackingObj.buffer);
+    }, timeoutMs);
+
+    await sendAT(cmd);
+  });
+}
+
+async function readSerialLoop() {
+  const decoder=new TextDecoder();
+  try {
+    while(serialPort&&serialPort.readable) {
+      serialReader=serialPort.readable.getReader();
+      while(true) {
+        const {value,done}=await serialReader.read();
+        if(done) break;
+        atBuffer+=decoder.decode(value);
+        processATBuffer();
+      }
+      serialReader.releaseLock(); serialReader=null;
+    }
+  } catch(e) {
+    if(serialReader){try{serialReader.releaseLock();}catch(x){}}
+    if(e.name!=='NetworkError') atLog(`Read error: ${e.message}`,'err');
+  }
+}
+
+function processATBuffer() {
+  const lines=atBuffer.split('\r\n');
+  atBuffer=lines.pop(); 
+  lines.forEach(line=>{
+    const l=line.trim(); if(!l)return;
+    atLog(l,'recv');
+    
+    replyResolvers.forEach(tracker => {
+      tracker.buffer += l + '\n';
+      if(l === 'OK' || l === 'ERROR') {
+        tracker.resolver(tracker.buffer);
+        replyResolvers = replyResolvers.filter(r => r !== tracker);
+      }
+    });
+
+    parseSMSLine(l);
+  });
+}
+
+let smsParsing = null;
+function parseSMSLine(line) {
+  if(line.startsWith('+CMT:') || line.startsWith('+CMGL:')) {
+    const fromMatch = line.match(/"([^"]+)"/);
+    smsParsing = { from: fromMatch ? fromMatch[1] : 'Unknown', time: nowStr() };
+    return;
+  }
+  if(smsParsing && line.length > 0 && !line.startsWith('+') && !line.startsWith('AT')) {
+    smsParsing.body = line;
+    handleIncomingSMS(smsParsing);
+    smsParsing = null;
+  }
+}
+
+function handleIncomingSMS(sms) {
+  const { from, body, time } = sms;
+  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$/.test(from.replace(/\s/g,''));
+
+  const isSuccess = /success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
+  const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
+  const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
+
+  const numMatch = body.match(/09\d{9}/);
+  const loadedNum = numMatch ? numMatch[0] : null;
+
+  receivedSMSList.unshift({ from, body, time, status });
+  LS.set('fl_sms', receivedSMSList.slice(0,50));
+  renderSMSList();
+
+  if(loadedNum || isFromShortcode) {
+    let updated = false;
+    for(let i=0; i<history.length; i++) {
+      const h=history[i];
+      if(h.status==='pending' && (loadedNum===h.num || (!loadedNum && isFromShortcode))) {
+        history[i].status = status;
+        updated=true;
+        if(!loadedNum) break; 
+      }
+    }
+    if(updated) {
+      LS.set('fl_history',history);
+      showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed — check SMS' : '📩 SMS received from 2+');
+      if (document.getElementById('page-history').classList.contains('active')) {
+        renderHistoryFull();
+      }
+    }
+  }
+}
+
+function renderSMSList() {
+  const list=document.getElementById('smsList');
+  if(!receivedSMSList.length){
+    list.innerHTML='<div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>';
+    return;
+  }
+  list.innerHTML=receivedSMSList.slice(0,20).map(s=>`
+    <div class="sms-entry">
+      <div class="sms-from">From: ${s.from}</div>
+      <div class="sms-body ${s.status==='success'?'success-msg':s.status==='failed'?'failed-msg':''}">${s.body}</div>
+      <div class="sms-time">${s.time}</div>
+    </div>`).join('');
+}
+
+// ══ Keyboard shortcuts ════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&document.getElementById('addFormPanel').classList.contains('open')) addMember();
+  if(e.key==='Enter'&&document.getElementById('presetModal').classList.contains('open')) savePreset();
+  if(e.key==='Escape'){ closePresetModal(); document.getElementById('addFormPanel').classList.remove('open'); }
+});
+
+// ══ Init ══════════════════════════════════════════════════════════════════════
+render();
+renderRetailerSelector();
+renderSMSList();
+</script>
+</body>
+</html>
