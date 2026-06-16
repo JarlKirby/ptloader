@@ -138,7 +138,7 @@
   .retailer-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
   /* Retailer SIM selector */
-  .retailer-selector { display: flex; gap: 10px; }
+  .retailer-selector { display: flex; gap: 10px; flex-direction: column; }
   .rsim-card { flex: 1; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: all .15s; position: relative; }
   .rsim-card:hover { border-color: var(--border-md); }
   .rsim-card.active { border: 2px solid var(--green); background: var(--green-light); }
@@ -149,6 +149,12 @@
   .rsim-card.active .rsim-identity-wrap { background: rgba(29, 158, 117, 0.08); }
   .rsim-identity-val { font-weight: 600; color: var(--text); }
   .rsim-card.active .rsim-identity-val { color: var(--green-dark); }
+  
+  .rsim-balance-wrap { margin-top: 4px; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: var(--radius-md); font-size: 11px; font-family: var(--mono); color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
+  .rsim-card.active .rsim-balance-wrap { background: rgba(29, 158, 117, 0.08); }
+  .rsim-balance-val { font-weight: 600; color: var(--text); }
+  .rsim-card.active .rsim-balance-val { color: var(--green-dark); }
+
   .rsim-shortcode {font-size: 12px; font-family: var(--mono); color: var(--text-secondary); margin-top: 2px; }
   .rsim-card.active .rsim-shortcode { color: var(--green); }
   .rsim-active-badge { font-size: 10px; font-weight: 600; background: var(--green); color: #fff; padding: 2px 7px; border-radius: 999px; }
@@ -156,6 +162,8 @@
   .rsim-card:hover .rsim-edit { opacity: 1; }
   .rsim-edit:hover { color: var(--green); }
   .rsim-edit svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  
+  .rsim-actions { display: flex; gap: 6px; margin-top: 8px; }
 
   /* ── Buttons ── */
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--radius-lg); border: 0.5px solid var(--border); cursor: pointer; font-size: 14px; font-weight: 500; font-family: var(--font); background: var(--surface); color: var(--text); transition: all .15s; }
@@ -197,14 +205,15 @@
   .status-dot.error     { background: var(--red); }
   .status-text { font-size: 13px; color: var(--text-secondary); }
   .sms-log { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 12px; color: var(--text-secondary); min-height: 160px; max-height: 320px; overflow-y: auto; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
-  .sms-entry { padding: 10px 12px; border-bottom: 0.5px solid var(--border); }
+  .sms-list-container { max-height: 350px; overflow-y: auto; }
+  .sms-entry { padding: 10px 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); }
   .sms-entry:last-child { border-bottom: none; }
   .sms-from { font-size: 11px; font-weight: 600; color: var(--text-hint); margin-bottom: 3px; }
-  .sms-body { font-size: 13px; color: var(--text); }
+  .sms-body { font-size: 13px; color: var(--text); line-height: 1.4; }
   .sms-body.success-msg { color: var(--green-dark); }
   .sms-body.failed-msg  { color: var(--red-dark); }
   .sms-time { font-size: 11px; color: var(--text-hint); margin-top: 3px; }
-  .at-log { background: #0f0f10; border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 11px; color: #7cfc9a; min-height: 80px; max-height: 160px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+  .at-log { background: #0f0f10; border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 11px; color: #7cfc9a; min-height: 120px; max-height: 200px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
   .at-row-sent { color: #6bbfff; }
   .at-row-recv { color: #7cfc9a; }
   .at-row-err  { color: #ff7c7c; }
@@ -251,6 +260,9 @@
   <button class="nav-tab" onclick="showPage('sim')">SIM Reader</button>
 </div>
 
+<div id="secureCtxWarning" style="display:none;background:#FAECE7;border-bottom:0.5px solid #f0bfb0;padding:10px 16px;font-size:13px;color:#993C1D;text-align:center;">
+  ⚠️ <b>Insecure context detected.</b> Web Serial requires <code>https://</code> or <code>localhost</code>. The SIM Reader tab won't work when opened as a <code>file://</code> URL. Serve this file via a local server (e.g. <code>npx serve .</code>) to enable hardware features.
+</div>
 <div class="page active" id="page-load">
 <div class="main">
 
@@ -327,14 +339,16 @@
     <div class="total-pill" id="totalPill"></div>
   </div>
 
-  <div class="section-label">Retailer SIM</div>
+  <div class="section-label">Retailer SIM Management</div>
   <div class="retailer-selector" id="retailerSelector"></div>
   <div id="retailerEditPanel" style="display:none">
     <div class="sim-card" style="margin-top:10px">
       <h3 id="retailerEditTitle">Edit SIM</h3>
       <div class="form-grid" style="margin-bottom:10px">
         <label>Label<input type="text" id="rLabel" placeholder="e.g. SIM 1 - Globe" /></label>
-        <label>Shortcode<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
+        <label>Shortcode / Keyword<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
+        <label>Bal Check String<input type="text" id="rBalCommand" placeholder="e.g. BAL to 2256" /></label>
+        <label>Bal Target Num<input type="text" id="rBalTarget" placeholder="e.g. 2256" /></label>
       </div>
       <div class="form-btns">
         <button class="btn btn-green btn-sm" onclick="saveRetailerSIM()">Save</button>
@@ -404,9 +418,9 @@
   </div>
 
   <div class="sim-card">
-    <h3>Incoming SMS from 2+</h3>
-    <p style="margin-bottom:12px">Replies from your retailer load shortcode will appear here and automatically update your history.</p>
-    <div id="smsList" style="border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
+    <h3>Incoming Messages</h3>
+    <p style="margin-bottom:12px">Replies from your retailer load shortcode or balance queries will appear here.</p>
+    <div id="smsList" class="sms-list-container" style="border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
       <div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>
     </div>
   </div>
@@ -415,10 +429,11 @@
     <h3>AT command log</h3>
     <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
     <div class="at-log" id="atLog">Waiting for connection…</div>
-    <div style="display:flex;gap:8px;margin-top:10px">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CNUM')">Read Identity (AT+CNUM)</button>
+      <button class="btn btn-sm" onclick="checkBalanceHardware()">Check Balance (Hardware SMS)</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
     </div>
   </div>
@@ -452,7 +467,7 @@ const LS = {
 
 // ══ State ═════════════════════════════════════════════════════════════════════
 let members = LS.get('fl_members') || [];
-let history = LS.get('fl_history') || [];
+let txHistory = LS.get('fl_history') || [];
 let presets = LS.get('fl_presets') || [1, 20, 50, 100, 150, 300];
 let selected = [];
 let amount   = 1;
@@ -471,8 +486,10 @@ const CHECK_SVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke
 
 // ══ Helpers ═══════════════════════════════════════════════════════════════════
 function nowStr() {
-  const d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
-  return `Today ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
+  const d=new Date();
+  const h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()} ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
 }
 function showToast(msg) {
   const t=document.getElementById('toast');
@@ -559,7 +576,6 @@ function renderBanner() {
 function setHistoryFilter(filterValue) {
   currentHistoryFilter = filterValue;
   
-  // Highlight active filter button
   const buttons = document.querySelectorAll('#historyFilters .filter-btn');
   buttons.forEach(btn => {
     const txt = btn.textContent.toLowerCase();
@@ -573,15 +589,13 @@ function renderHistoryFull() {
   const list = document.getElementById('historyListFull');
   const btnClearHistory = document.getElementById('btnClearHistory');
   
-  // Show or hide clear history option based on full transaction status counts
-  if (history.length > 0) {
+  if (txHistory.length > 0) {
     btnClearHistory.style.display = 'inline-flex';
   } else {
     btnClearHistory.style.display = 'none';
   }
 
-  // Apply visual filtering rules
-  const filteredHistory = history.filter(item => {
+  const filteredHistory = txHistory.filter(item => {
     if (currentHistoryFilter === 'all') return true;
     return item.status === currentHistoryFilter;
   });
@@ -592,8 +606,7 @@ function renderHistoryFull() {
   }
 
   list.innerHTML = filteredHistory.map(h => {
-    // Look up absolute original array tracking indices to prevent misalignment when elements cycle
-    const originalIndex = history.findIndex(x => x.id === h.id);
+    const originalIndex = txHistory.findIndex(x => x.id === h.id);
     return `
     <div class="history-item">
       <div class="h-dot ${h.status}" onclick="toggleHistoryStatus(${originalIndex})" title="Click to toggle status"></div>
@@ -610,17 +623,17 @@ function renderHistoryFull() {
 }
 
 function toggleHistoryStatus(i) {
-  if (i < 0 || i >= history.length) return;
+  if (i < 0 || i >= txHistory.length) return;
   const cycle = { pending:'success', success:'failed', failed:'pending' };
-  history[i].status = cycle[history[i].status] || 'pending';
-  LS.set('fl_history', history);
+  txHistory[i].status = cycle[txHistory[i].status] || 'pending';
+  LS.set('fl_history', txHistory);
   renderHistoryFull();
 }
 
 function clearHistory() {
   if (confirm("Are you sure you want to clear your entire transaction history log? This cannot be undone.")) {
     history = [];
-    LS.set('fl_history', history);
+    LS.set('fl_history', txHistory);
     renderHistoryFull();
     showToast('Transaction history cleared');
   }
@@ -651,6 +664,7 @@ function deleteAllMembers() {
   }
 }
 
+// ══ Forms Management ══════════════════════════════════════════════════════════
 function toggleAddForm() {
   const p=document.getElementById('addFormPanel');
   p.classList.toggle('open');
@@ -739,10 +753,10 @@ function savePreset() {
 }
 document.getElementById('presetModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePresetModal();});
 
-// ══ Retailer SIMs ═════════════════════════════════════════════════════════════
+// ══ Retailer SIMs Management ═════════════════════════════════════════════════
 let retailerSIMs = LS.get('fl_retailer_sims') || [
-  { id: 1, label: 'SIM 1 — Globe', shortcode: '2+', identity: null },
-  { id: 2, label: 'SIM 2 — Globe', shortcode: '2+', identity: null }
+  { id: 1, label: 'SIM 1 — Globe Retailer', shortcode: '2+', identity: null, balance: null, balCommand: 'BAL', balTarget: '2256' },
+  { id: 2, label: 'SIM 2 — Smart Load', shortcode: '131', identity: null, balance: null, balCommand: '?BAL', balTarget: '131' }
 ];
 let activeRetailerSIM = LS.get('fl_active_retailer') || 1;
 let editingRetailerID = null;
@@ -753,17 +767,27 @@ function renderRetailerSelector() {
   const el = document.getElementById('retailerSelector');
   el.innerHTML = retailerSIMs.map(s => `
     <div class="rsim-card${activeRetailerSIM===s.id?' active':''}" onclick="setActiveRetailer(${s.id})">
-      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit">
+      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit Settings">
         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
       <div class="rsim-top">
         <span class="rsim-label">${s.label}</span>
         ${activeRetailerSIM===s.id?'<span class="rsim-active-badge">Active</span>':''}
       </div>
-      <div class="rsim-shortcode">Shortcode: ${s.shortcode}</div>
+      <div class="rsim-shortcode">Keyword: ${s.shortcode} &middot; Check: "${s.balCommand}" to ${s.balTarget}</div>
+      
       <div class="rsim-identity-wrap">
-        <span>Identity:</span>
-        <span class="rsim-identity-val">${s.identity || 'Waiting for connection...'}</span>
+        <span>Hardware Identity:</span>
+        <span class="rsim-identity-val">${s.identity || 'Not read yet'}</span>
+      </div>
+      
+      <div class="rsim-balance-wrap">
+        <span>Wallet Balance:</span>
+        <span class="rsim-balance-val" id="rsim-bal-display-${s.id}">${s.balance || '₱--.--'}</span>
+      </div>
+      
+      <div class="rsim-actions">
+         <button class="btn btn-sm" style="padding: 4px 10px; font-size:11px;" onclick="checkBalanceIntent(event, '${s.balCommand}', '${s.balTarget}')">Check Bal (Intent)</button>
       </div>
     </div>`).join('');
 
@@ -788,6 +812,8 @@ function openRetailerEdit(e, id) {
   const sim = retailerSIMs.find(s=>s.id===id);
   document.getElementById('rLabel').value = sim.label;
   document.getElementById('rShortcode').value = sim.shortcode;
+  document.getElementById('rBalCommand').value = sim.balCommand || 'BAL';
+  document.getElementById('rBalTarget').value = sim.balTarget || '2256';
   document.getElementById('retailerEditTitle').textContent = `Edit ${sim.label}`;
   document.getElementById('retailerEditPanel').style.display = 'block';
 }
@@ -800,11 +826,17 @@ function closeRetailerEdit() {
 function saveRetailerSIM() {
   const label = document.getElementById('rLabel').value.trim();
   const shortcode = document.getElementById('rShortcode').value.trim();
-  if (!label || !shortcode) { showToast('Fill in label and shortcode'); return; }
+  const cmd = document.getElementById('rBalCommand').value.trim();
+  const target = document.getElementById('rBalTarget').value.trim();
+  
+  if (!label || !shortcode || !cmd || !target) { showToast('Please completely fill out configuration fields'); return; }
+  
   const idx = retailerSIMs.findIndex(s=>s.id===editingRetailerID);
   if (idx>-1) { 
     retailerSIMs[idx].label = label; 
     retailerSIMs[idx].shortcode = shortcode; 
+    retailerSIMs[idx].balCommand = cmd;
+    retailerSIMs[idx].balTarget = target;
   }
   saveRetailerSIMs();
   closeRetailerEdit();
@@ -815,6 +847,42 @@ function saveRetailerSIM() {
 function getActiveShortcode() {
   const sim = retailerSIMs.find(s=>s.id===activeRetailerSIM);
   return sim ? sim.shortcode : '2+';
+}
+
+// ══ Check Balance Logic ═══════════════════════════════════════════════════════
+function checkBalanceIntent(e, text, targetNum) {
+  e.stopPropagation(); 
+  window.location.href = `sms:${targetNum}?body=${encodeURIComponent(text)}`;
+  showToast(`Redirecting out to System Messages App to pull verification...`);
+}
+
+async function checkBalanceHardware() {
+  if(!serialPort || !serialPort.writable) {
+    showToast('SIM reader must be physically connected to process background commands');
+    return;
+  }
+  const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
+  if(!currentProfile) return;
+  
+  try {
+    atLog(`Initiating underlying balance check via background hardware pipeline...`, 'sent');
+    showToast(`Sending balance text string to network...`);
+    
+    // Command Sequence: Send SMS text out to carrier shortcode
+    await sendAT(`AT+CMGS="${currentProfile.balTarget}"`);
+    await delay(300);
+    
+    // Pass raw dynamic SMS text token string body terminated explicitly with structural Ctrl+Z code hex code byte boundary indicator
+    if (serialPort && serialPort.writable) {
+      const writer = serialPort.writable.getWriter();
+      const encoder = new TextEncoder();
+      await writer.write(encoder.encode(currentProfile.balCommand + "\x1A"));
+      writer.releaseLock();
+      atLog(`Sent check instruction payload: "${currentProfile.balCommand}"`, 'sent');
+    }
+  } catch(err) {
+    atLog(`Balance dispatch exception: ${err.message}`, 'err');
+  }
 }
 
 // ══ Load via SMS ══════════════════════════════════════════════════════════════
@@ -851,10 +919,10 @@ async function sendSMSForMembers(ids) {
   const now=nowStr();
   ids.forEach((id,i)=>{
     const m=members.find(x=>x.id===id); if(!m)return;
-    history.unshift({id:Date.now()+i, name:m.name, num:m.num, amt:amount, date:now, status:'pending'});
-    setTimeout(()=>{ window.location.href=smsLoadURL(m.num,amount); },i*600);
+    txHistory.unshift({id:Date.now()+i, name:m.name, num:m.num, amt:amount, date:now, status:'pending'});
+    setTimeout(()=>{ window.location.href=smsLoadURL(m.num,amount); }, i*600);
   });
-  LS.set('fl_history',history); return true;
+  LS.set('fl_history',txHistory); return true;
 }
 
 async function loadSelected() {
@@ -874,14 +942,16 @@ async function loadAll() {
   selected=[]; render();
 }
 
-// ══ Web Serial — SIM Reader ═══════════════════════════════════════════════════
+// ══ Web Serial Engine (WITH INFINITE RECONNECT PAT) ═══════════════════════════
 let serialPort=null, serialReader=null, serialWriter=null;
+let abortController=null; // Core logic addition patch for locking loop cycles cleanly
 let atBuffer='';
 let receivedSMSList = LS.get('fl_sms') || [];
 let replyResolvers = [];
 
 function atLog(msg, type='recv') {
   const el=document.getElementById('atLog');
+  if(!el) return;
   const line=document.createElement('div');
   line.className=`at-row-${type}`;
   line.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -894,6 +964,7 @@ function updateSimStatus(connected, error=false) {
   const txt=document.getElementById('simStatusText');
   const cb =document.getElementById('connectBtn');
   const db =document.getElementById('disconnectBtn');
+  if(!dot || !txt) return;
   dot.className='status-dot'+(connected?' connected':error?' error':'');
   txt.textContent=connected?'Connected — listening for SMS':error?'Connection error':'Not connected';
   cb.style.display=connected?'none':'flex';
@@ -909,9 +980,16 @@ async function connectSIM() {
   try {
     serialPort = await navigator.serial.requestPort();
     await serialPort.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none' });
+    
+    // Initialize standard state-locking control tokens before cycling readers
+    abortController = new AbortController();
+    
     updateSimStatus(true);
-    atLog('Port opened at 9600 baud','recv');
+    atLog('Port successfully isolated and opened at 9600 baud','recv');
+    
+    // Start listener engine loops safely
     readSerialLoop();
+    
     await delay(500);
     await sendAT('AT');
     await delay(300);
@@ -947,21 +1025,34 @@ async function connectSIM() {
 }
 
 async function disconnectSIM() {
+  // Graceful tearing procedure: Kill execution loops instantly via structural control flags before resetting streams
+  if (abortController) {
+    abortController.abort();
+    abortController = null;
+  }
+  
   try {
     if(serialReader){ 
       await serialReader.cancel(); 
       await delay(100);
     }
-    if(serialPort) { await serialPort.close(); serialPort=null; }
   } catch(e) {}
+  
+  try {
+    if(serialPort) { 
+      await serialPort.close(); 
+      serialPort=null; 
+    }
+  } catch(e) {}
+  
   updateSimStatus(false);
-  atLog('Disconnected','recv');
+  atLog('Disconnected safely from current device channel','recv');
 }
 
 function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 async function sendAT(cmd) {
-  if(!serialPort||!serialPort.writable){ showToast('SIM reader not connected'); return; }
+  if(!serialPort||!serialPort.writable){ return; }
   try {
     const writer=serialPort.writable.getWriter();
     const enc=new TextEncoder();
@@ -990,21 +1081,45 @@ async function sendATWithReply(cmd, timeoutMs = 2000) {
 }
 
 async function readSerialLoop() {
-  const decoder=new TextDecoder();
-  try {
-    while(serialPort&&serialPort.readable) {
-      serialReader=serialPort.readable.getReader();
-      while(true) {
-        const {value,done}=await serialReader.read();
-        if(done) break;
-        atBuffer+=decoder.decode(value);
+  const decoder = new TextDecoder();
+  
+  while (serialPort && serialPort.readable && abortController && !abortController.signal.aborted) {
+    try {
+      // Stream linking through dynamic abort pipelines prevents unexpected port locking
+      serialReader = serialPort.readable.getReader();
+      
+      while (serialPort && serialPort.readable && abortController && !abortController.signal.aborted) {
+        const { value, done } = await serialReader.read();
+        if (done) break; 
+        
+        atBuffer += decoder.decode(value);
         processATBuffer();
       }
-      serialReader.releaseLock(); serialReader=null;
+    } catch (e) {
+      // Disconnection loop fix structural intercept
+      if (abortController && abortController.signal.aborted) {
+        atLog("Background processes shut down successfully.", "recv");
+        break; 
+      }
+      
+      if (e.name === 'NetworkError' || e.message.includes('The device has been disconnected') || e.message.includes('The serial port was closed')) {
+        atLog(`Hardware connection lost. Aborting internal processes.`, 'err');
+        updateSimStatus(false, true);
+        break; // BREAK out completely to fix the loop
+      } else {
+        atLog(`Read intercept error: ${e.message}`, 'err');
+        break; 
+      }
+    } finally {
+      if (serialReader) {
+        try {
+          serialReader.releaseLock();
+          serialReader = null;
+        } catch(x) {}
+      }
     }
-  } catch(e) {
-    if(serialReader){try{serialReader.releaseLock();}catch(x){}}
-    if(e.name!=='NetworkError') atLog(`Read error: ${e.message}`,'err');
+    
+    await delay(100); // Breathe check buffer iteration padding space
   }
 }
 
@@ -1043,8 +1158,24 @@ function parseSMSLine(line) {
 
 function handleIncomingSMS(sms) {
   const { from, body, time } = sms;
-  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$/.test(from.replace(/\s/g,''));
+  
+  // Clean dynamic target fields
+  const cleanFrom = from.replace(/[\s\-\+]/g,'');
+  const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
+  
+  // RegEx mapping to grab structural credit strings like: "Bal: P500.50", "Balance 150.00", "Load Wallet: Php 1200"
+  const balMatch = body.match(/(?:bal|balance|wallet|credit|php|p)[\s\:\₱\==]*([\d,]+\.\d{2})/i);
+  
+  if (balMatch && currentProfile && (cleanFrom.includes(currentProfile.balTarget) || cleanFrom.length <= 5)) {
+    const parsedBal = "₱" + balMatch[1];
+    currentProfile.balance = parsedBal;
+    saveRetailerSIMs();
+    renderRetailerSelector();
+    atLog(`🎉 Balance dynamic parse matched: [${parsedBal}] from network`, 'recv');
+    showToast(`Balance updated: ${parsedBal}`);
+  }
 
+  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$|2256/.test(from.replace(/\s/g,''));
   const isSuccess = /success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
   const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
@@ -1058,17 +1189,17 @@ function handleIncomingSMS(sms) {
 
   if(loadedNum || isFromShortcode) {
     let updated = false;
-    for(let i=0; i<history.length; i++) {
-      const h=history[i];
+    for(let i=0; i<txHistory.length; i++) {
+      const h=txHistory[i];
       if(h.status==='pending' && (loadedNum===h.num || (!loadedNum && isFromShortcode))) {
-        history[i].status = status;
+        txHistory[i].status = status;
         updated=true;
         if(!loadedNum) break; 
       }
     }
     if(updated) {
-      LS.set('fl_history',history);
-      showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed — check SMS' : '📩 SMS received from 2+');
+      LS.set('fl_history',txHistory);
+      showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed — check SMS' : '📩 SMS received');
       if (document.getElementById('page-history').classList.contains('active')) {
         renderHistoryFull();
       }
@@ -1078,6 +1209,7 @@ function handleIncomingSMS(sms) {
 
 function renderSMSList() {
   const list=document.getElementById('smsList');
+  if(!list) return;
   if(!receivedSMSList.length){
     list.innerHTML='<div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>';
     return;
