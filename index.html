@@ -57,15 +57,6 @@
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 10px; margin-top: 24px; }
   .section-label:first-child { margin-top: 0; }
 
-  /* ── Filter Row for History ── */
-  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-  .filter-btn { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 6px 12px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: all .15s; font-family: var(--font); }
-  .filter-btn:hover { border-color: var(--border-md); color: var(--text); }
-  .filter-btn.active { background: var(--text); border-color: var(--text); color: var(--surface); }
-  @media (prefers-color-scheme: dark) {
-    .filter-btn.active { background: #f0f0ec; border-color: #f0f0ec; color: #18181a; }
-  }
-
   /* ── Member cards ── */
   .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 10px; }
   .member-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: border-color .15s; position: relative; user-select: none; }
@@ -138,32 +129,20 @@
   .retailer-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
 
   /* Retailer SIM selector */
-  .retailer-selector { display: flex; gap: 10px; flex-direction: column; }
+  .retailer-selector { display: flex; gap: 10px; }
   .rsim-card { flex: 1; background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px; cursor: pointer; transition: all .15s; position: relative; }
   .rsim-card:hover { border-color: var(--border-md); }
   .rsim-card.active { border: 2px solid var(--green); background: var(--green-light); }
   .rsim-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
   .rsim-label { font-size: 14px; font-weight: 500; color: var(--text); }
   .rsim-card.active .rsim-label { color: var(--green-dark); }
-  .rsim-identity-wrap { margin-top: 8px; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: var(--radius-md); font-size: 11px; font-family: var(--mono); color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
-  .rsim-card.active .rsim-identity-wrap { background: rgba(29, 158, 117, 0.08); }
-  .rsim-identity-val { font-weight: 600; color: var(--text); }
-  .rsim-card.active .rsim-identity-val { color: var(--green-dark); }
-  
-  .rsim-balance-wrap { margin-top: 4px; padding: 4px 8px; background: rgba(0,0,0,0.03); border-radius: var(--radius-md); font-size: 11px; font-family: var(--mono); color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; }
-  .rsim-card.active .rsim-balance-wrap { background: rgba(29, 158, 117, 0.08); }
-  .rsim-balance-val { font-weight: 600; color: var(--text); }
-  .rsim-card.active .rsim-balance-val { color: var(--green-dark); }
-
-  .rsim-shortcode {font-size: 12px; font-family: var(--mono); color: var(--text-secondary); margin-top: 2px; }
+  .rsim-shortcode { font-size: 12px; font-family: var(--mono); color: var(--text-secondary); }
   .rsim-card.active .rsim-shortcode { color: var(--green); }
   .rsim-active-badge { font-size: 10px; font-weight: 600; background: var(--green); color: #fff; padding: 2px 7px; border-radius: 999px; }
   .rsim-edit { position: absolute; top: 8px; right: 8px; background: transparent; border: none; cursor: pointer; color: var(--text-hint); opacity: 0; transition: opacity .15s; padding: 4px; }
   .rsim-card:hover .rsim-edit { opacity: 1; }
   .rsim-edit:hover { color: var(--green); }
   .rsim-edit svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
-  
-  .rsim-actions { display: flex; gap: 6px; margin-top: 8px; }
 
   /* ── Buttons ── */
   .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border-radius: var(--radius-lg); border: 0.5px solid var(--border); cursor: pointer; font-size: 14px; font-weight: 500; font-family: var(--font); background: var(--surface); color: var(--text); transition: all .15s; }
@@ -205,15 +184,14 @@
   .status-dot.error     { background: var(--red); }
   .status-text { font-size: 13px; color: var(--text-secondary); }
   .sms-log { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 12px; color: var(--text-secondary); min-height: 160px; max-height: 320px; overflow-y: auto; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
-  .sms-list-container { max-height: 350px; overflow-y: auto; }
-  .sms-entry { padding: 10px 12px; border-bottom: 0.5px solid var(--border); background: var(--surface); }
+  .sms-entry { padding: 10px 12px; border-bottom: 0.5px solid var(--border); }
   .sms-entry:last-child { border-bottom: none; }
   .sms-from { font-size: 11px; font-weight: 600; color: var(--text-hint); margin-bottom: 3px; }
-  .sms-body { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .sms-body { font-size: 13px; color: var(--text); }
   .sms-body.success-msg { color: var(--green-dark); }
   .sms-body.failed-msg  { color: var(--red-dark); }
   .sms-time { font-size: 11px; color: var(--text-hint); margin-top: 3px; }
-  .at-log { background: #0f0f10; border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 11px; color: #7cfc9a; min-height: 120px; max-height: 200px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+  .at-log { background: #0f0f10; border-radius: var(--radius-md); padding: 12px; font-family: var(--mono); font-size: 11px; color: #7cfc9a; min-height: 80px; max-height: 160px; overflow-y: auto; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
   .at-row-sent { color: #6bbfff; }
   .at-row-recv { color: #7cfc9a; }
   .at-row-err  { color: #ff7c7c; }
@@ -250,19 +228,18 @@
     Family Load
   </div>
   <div class="header-right">
-    <span class="header-badge" id="activeRouteHeaderBadge">Active: SIM 1 — Globe</span>
+    <span class="header-badge">TM (Globe)</span>
   </div>
 </header>
 
+<!-- Nav -->
 <div class="nav-tabs">
   <button class="nav-tab active" onclick="showPage('load')">Load</button>
   <button class="nav-tab" onclick="showPage('history')">History</button>
   <button class="nav-tab" onclick="showPage('sim')">SIM Reader</button>
 </div>
 
-<div id="secureCtxWarning" style="display:none;background:#FAECE7;border-bottom:0.5px solid #f0bfb0;padding:10px 16px;font-size:13px;color:#993C1D;text-align:center;">
-  ⚠️ <b>Insecure context detected.</b> Web Serial requires <code>https://</code> or <code>localhost</code>. The SIM Reader tab won't work when opened as a <code>file://</code> URL. Serve this file via a local server (e.g. <code>npx serve .</code>) to enable hardware features.
-</div>
+<!-- ══════════════ PAGE: LOAD ══════════════ -->
 <div class="page active" id="page-load">
 <div class="main">
 
@@ -274,12 +251,10 @@
     <button class="btn btn-sm" onclick="clearSel()">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clear
     </button>
-    <button class="btn btn-sm btn-red" id="btnDeleteAll" onclick="deleteAllMembers()" style="margin-left: auto; display: none;">
-      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Delete all
-    </button>
   </div>
   <div class="members-grid" id="membersGrid"></div>
 
+  <!-- Add form -->
   <div class="add-form-panel" id="addFormPanel">
     <div class="form-tabs">
       <button class="form-tab active" id="tabSingle" onclick="switchTab('single')">Single member</button>
@@ -339,16 +314,14 @@
     <div class="total-pill" id="totalPill"></div>
   </div>
 
-  <div class="section-label">Retailer SIM Management</div>
+  <div class="section-label">Retailer SIM</div>
   <div class="retailer-selector" id="retailerSelector"></div>
   <div id="retailerEditPanel" style="display:none">
     <div class="sim-card" style="margin-top:10px">
       <h3 id="retailerEditTitle">Edit SIM</h3>
       <div class="form-grid" style="margin-bottom:10px">
         <label>Label<input type="text" id="rLabel" placeholder="e.g. SIM 1 - Globe" /></label>
-        <label>Shortcode / Keyword<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
-        <label>Bal Check String<input type="text" id="rBalCommand" placeholder="e.g. BAL to 2256" /></label>
-        <label>Bal Target Num<input type="text" id="rBalTarget" placeholder="e.g. 2256" /></label>
+        <label>Shortcode<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
       </div>
       <div class="form-btns">
         <button class="btn btn-green btn-sm" onclick="saveRetailerSIM()">Save</button>
@@ -372,55 +345,51 @@
 </div>
 </div>
 
+<!-- ══════════════ PAGE: HISTORY ══════════════ -->
 <div class="page" id="page-history">
 <div class="main">
   <div class="section-label" style="margin-top:0">Load history</div>
-  
-  <div class="sel-row" style="margin-bottom: 14px;">
-    <div class="filter-row" id="historyFilters">
-      <button class="filter-btn active" onclick="setHistoryFilter('all')">All</button>
-      <button class="filter-btn" onclick="setHistoryFilter('success')">Success</button>
-      <button class="filter-btn" onclick="setHistoryFilter('pending')">Pending</button>
-      <button class="filter-btn" onclick="setHistoryFilter('failed')">Failed</button>
-    </div>
-    
-    <button class="btn btn-sm btn-red" id="btnClearHistory" onclick="clearHistory()" style="margin-left: auto; display: none;">
-      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> Clear history
-    </button>
-  </div>
-
-  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tap the colored dot on any item entry to toggle its status state manually.</p>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tap the dot on any entry to toggle its status manually, or connect your SIM reader to update automatically.</p>
   <div class="history-list" id="historyListFull"></div>
 </div>
 </div>
 
+<!-- ══════════════ PAGE: SIM READER ══════════════ -->
 <div class="page" id="page-sim">
 <div class="main">
 
   <div class="section-label" style="margin-top:0">SIM card reader</div>
 
   <div class="info-box" style="margin-bottom:14px">
-    <b>Dynamic Hardware Processing:</b> Connect your USB SIM reader, click "Connect SIM Reader", and authorize the respective serial port line. The system automatically reads the phone profile straight from your chip hardware identity space via background processes.
+    <b>How it works:</b> Click <b>Add COM Port</b> to connect a port from your multi-SIM reader. You can add multiple ports — one per SIM slot. The active SIM sends the load SMS directly via AT commands. Replies from <b>2+</b> automatically update History dots to ✅ or ❌.
   </div>
 
   <div class="sim-card">
-    <h3>Connection</h3>
-    <p>Uses the Web Serial API (Chrome/Edge only). Make sure your SIM reader is plugged in before connecting.</p>
-    <div class="connect-row">
-      <div class="status-dot" id="simStatusDot"></div>
-      <span class="status-text" id="simStatusText">Not connected</span>
-      <button class="btn btn-green btn-sm" id="connectBtn" onclick="connectSIM()">
-        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-        Connect SIM Reader
+    <h3>COM Ports</h3>
+    <p style="margin-bottom:12px">Add each COM port for your SIM reader slots. Click a port to make it the active sender.</p>
+    <div id="comPortList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-green btn-sm" onclick="addCOMPort()">
+        <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add COM Port
       </button>
-      <button class="btn btn-sm" id="disconnectBtn" onclick="disconnectSIM()" style="display:none">Disconnect</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <span style="font-size:12px;color:var(--text-secondary)">Baud:</span>
+        <select id="baudSelect" style="padding:6px 10px;border-radius:var(--radius-md);border:0.5px solid var(--border);background:var(--bg);font-size:13px;color:var(--text);font-family:var(--font);outline:none">
+          <option value="9600" selected>9600</option>
+          <option value="19200">19200</option>
+          <option value="38400">38400</option>
+          <option value="57600">57600</option>
+          <option value="115200">115200</option>
+        </select>
+      </div>
     </div>
   </div>
 
   <div class="sim-card">
-    <h3>Incoming Messages</h3>
-    <p style="margin-bottom:12px">Replies from your retailer load shortcode or balance queries will appear here.</p>
-    <div id="smsList" class="sms-list-container" style="border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
+    <h3>Incoming SMS from 2+</h3>
+    <p style="margin-bottom:12px">Replies from your retailer load shortcode will appear here and automatically update your history.</p>
+    <div id="smsList" style="border:0.5px solid var(--border);border-radius:var(--radius-md);overflow:hidden">
       <div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>
     </div>
   </div>
@@ -429,11 +398,10 @@
     <h3>AT command log</h3>
     <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
     <div class="at-log" id="atLog">Waiting for connection…</div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+    <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CNUM')">Read Identity (AT+CNUM)</button>
-      <button class="btn btn-sm" onclick="checkBalanceHardware()">Check Balance (Hardware SMS)</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=\"ALL\"')">Read SMS</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
     </div>
   </div>
@@ -441,6 +409,7 @@
 </div>
 </div>
 
+<!-- Preset modal -->
 <div class="modal-bg" id="presetModal">
   <div class="modal">
     <h2>Add preset amount</h2>
@@ -467,11 +436,10 @@ const LS = {
 
 // ══ State ═════════════════════════════════════════════════════════════════════
 let members = LS.get('fl_members') || [];
-let txHistory = LS.get('fl_history') || [];
-let presets = LS.get('fl_presets') || [1, 20, 50, 100, 150, 300];
+let history = LS.get('fl_history') || [];
+let presets = LS.get('fl_presets') || [20, 50, 100, 150, 300];
 let selected = [];
-let amount   = 1;
-let currentHistoryFilter = 'all';
+let amount   = 50;
 
 // ══ Colors ════════════════════════════════════════════════════════════════════
 const COLORS = {
@@ -486,10 +454,8 @@ const CHECK_SVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke
 
 // ══ Helpers ═══════════════════════════════════════════════════════════════════
 function nowStr() {
-  const d=new Date();
-  const h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
-  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${months[d.getMonth()]} ${d.getDate()} ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
+  const d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
+  return `Today ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
 }
 function showToast(msg) {
   const t=document.getElementById('toast');
@@ -497,16 +463,6 @@ function showToast(msg) {
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 function autoColor(i) { return COLORS_LIST[i % COLORS_LIST.length]; }
-
-function normalizePhoneNumber(num) {
-  let clean = num.replace(/[-\s]/g, '');
-  if (clean.startsWith('+63')) {
-    clean = '0' + clean.slice(3);
-  } else if (clean.startsWith('63')) {
-    clean = '0' + clean.slice(2);
-  }
-  return clean;
-}
 
 // ══ Pages ═════════════════════════════════════════════════════════════════════
 const navTabs = document.querySelectorAll('.nav-tab');
@@ -522,14 +478,6 @@ function render() { renderMembers(); renderPresets(); renderBanner(); }
 
 function renderMembers() {
   const grid = document.getElementById('membersGrid');
-  const btnDeleteAll = document.getElementById('btnDeleteAll');
-  
-  if (members.length > 0) {
-    btnDeleteAll.style.display = 'inline-flex';
-  } else {
-    btnDeleteAll.style.display = 'none';
-  }
-
   let html = members.map(m => {
     const c = COLORS[m.color]||COLORS.teal;
     const sel = selected.includes(m.id);
@@ -573,43 +521,12 @@ function renderBanner() {
 }
 
 // ══ Render: History ═══════════════════════════════════════════════════════════
-function setHistoryFilter(filterValue) {
-  currentHistoryFilter = filterValue;
-  
-  const buttons = document.querySelectorAll('#historyFilters .filter-btn');
-  buttons.forEach(btn => {
-    const txt = btn.textContent.toLowerCase();
-    btn.classList.toggle('active', txt === filterValue);
-  });
-  
-  renderHistoryFull();
-}
-
 function renderHistoryFull() {
   const list = document.getElementById('historyListFull');
-  const btnClearHistory = document.getElementById('btnClearHistory');
-  
-  if (txHistory.length > 0) {
-    btnClearHistory.style.display = 'inline-flex';
-  } else {
-    btnClearHistory.style.display = 'none';
-  }
-
-  const filteredHistory = txHistory.filter(item => {
-    if (currentHistoryFilter === 'all') return true;
-    return item.status === currentHistoryFilter;
-  });
-
-  if (!filteredHistory.length) { 
-    list.innerHTML=`<div class="empty-state">No matching transactions found.</div>`; 
-    return; 
-  }
-
-  list.innerHTML = filteredHistory.map(h => {
-    const originalIndex = txHistory.findIndex(x => x.id === h.id);
-    return `
+  if (!history.length) { list.innerHTML=`<div class="empty-state">No loads recorded yet.</div>`; return; }
+  list.innerHTML = history.map((h,i)=>`
     <div class="history-item">
-      <div class="h-dot ${h.status}" onclick="toggleHistoryStatus(${originalIndex})" title="Click to toggle status"></div>
+      <div class="h-dot ${h.status}" onclick="toggleHistoryStatus(${i})" title="Click to toggle status"></div>
       <div class="h-info">
         <div class="h-name">${h.name}</div>
         <div class="h-sub">${h.num} &middot; ${h.date}</div>
@@ -618,26 +535,14 @@ function renderHistoryFull() {
         <div class="h-amt">₱${h.amt}</div>
         <span class="h-status ${h.status}">${h.status==='pending'?'Pending':h.status==='success'?'Success':'Failed'}</span>
       </div>
-    </div>`;
-  }).join('');
+    </div>`).join('');
 }
 
 function toggleHistoryStatus(i) {
-  if (i < 0 || i >= txHistory.length) return;
   const cycle = { pending:'success', success:'failed', failed:'pending' };
-  txHistory[i].status = cycle[txHistory[i].status] || 'pending';
-  LS.set('fl_history', txHistory);
+  history[i].status = cycle[history[i].status] || 'pending';
+  LS.set('fl_history', history);
   renderHistoryFull();
-}
-
-function clearHistory() {
-  if (confirm("Are you sure you want to clear your entire transaction history log? This cannot be undone.")) {
-    txHistory = [];
-    LS.set('fl_history', txHistory);
-    renderHistoryFull();
-    renderBanner();
-    showToast('Transaction history cleared');
-  }
 }
 
 // ══ Member actions ════════════════════════════════════════════════════════════
@@ -655,17 +560,6 @@ function deleteMember(e,id) {
   LS.set('fl_members',members); render(); showToast('Member removed');
 }
 
-function deleteAllMembers() {
-  if (confirm("Are you sure you want to remove ALL family members? This cannot be undone.")) {
-    members = [];
-    selected = [];
-    LS.set('fl_members', members);
-    render();
-    showToast('All family members cleared');
-  }
-}
-
-// ══ Forms Management ══════════════════════════════════════════════════════════
 function toggleAddForm() {
   const p=document.getElementById('addFormPanel');
   p.classList.toggle('open');
@@ -680,11 +574,11 @@ function switchTab(tab) {
 }
 
 function parseBulkNums(raw) {
-  return raw.split(/[\n,\s]+/).map(s=>normalizePhoneNumber(s)).filter(s=>s.length>0);
+  return raw.split(/[\n,\s]+/).map(s=>s.replace(/\s/g,'')).filter(s=>s.length>0);
 }
 function onBulkInput() {
   const raw=document.getElementById('bulkNums').value;
-  const tokens=[...new Set(parseBulkNums(raw))];
+  const tokens=parseBulkNums(raw);
   const valid  =tokens.filter(t=>/^09\d{9}$/.test(t));
   const invalid=tokens.filter(t=>t.length>0&&!/^09\d{9}$/.test(t));
   const el=document.getElementById('bulkCount');
@@ -697,7 +591,7 @@ function onBulkInput() {
 function addBulkMembers() {
   const raw=document.getElementById('bulkNums').value;
   const sim=document.getElementById('bulkSim').value;
-  const nums=[...new Set(parseBulkNums(raw))].filter(t=>/^09\d{9}$/.test(t)); 
+  const nums=parseBulkNums(raw).filter(t=>/^09\d{9}$/.test(t)); // no cap
   if (!nums.length){showToast('No valid numbers found');return;}
   const existing=new Set(members.map(m=>m.num));
   let added=0;
@@ -716,15 +610,12 @@ function addBulkMembers() {
 }
 function addMember() {
   const name=document.getElementById('newName').value.trim();
-  let num =document.getElementById('newNum').value.trim();
+  const num =document.getElementById('newNum').value.trim();
   const sim =document.getElementById('newSim').value;
   const color=document.getElementById('newColor').value;
   if(!name||!num){showToast('Fill in name and number');return;}
-  
-  num = normalizePhoneNumber(num);
-  if(!/^09\d{9}$/.test(num)){showToast('Enter a valid 11-digit PH number (09XX...)');return;}
-  
-  members.push({id:Date.now(),name,num,sim,color});
+  if(!/^09\d{9}$/.test(num.replace(/\s/g,''))){showToast('Enter a valid 11-digit PH number (09XX...)');return;}
+  members.push({id:Date.now(),name,num:num.replace(/\s/g,''),sim,color});
   LS.set('fl_members',members);
   document.getElementById('newName').value='';
   document.getElementById('newNum').value='';
@@ -754,10 +645,10 @@ function savePreset() {
 }
 document.getElementById('presetModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePresetModal();});
 
-// ══ Retailer SIMs Management ═════════════════════════════════════════════════
+// ══ Retailer SIMs ═════════════════════════════════════════════════════════════
 let retailerSIMs = LS.get('fl_retailer_sims') || [
-  { id: 1, label: 'SIM 1 — Globe Retailer', shortcode: '2+', identity: null, balance: null, balCommand: 'BAL', balTarget: '2256' },
-  { id: 2, label: 'SIM 2 — Smart Load', shortcode: '131', identity: null, balance: null, balCommand: '?BAL', balTarget: '131' }
+  { id: 1, label: 'SIM 1 — Globe', shortcode: '2+' },
+  { id: 2, label: 'SIM 2 — Globe', shortcode: '2+' }
 ];
 let activeRetailerSIM = LS.get('fl_active_retailer') || 1;
 let editingRetailerID = null;
@@ -768,35 +659,15 @@ function renderRetailerSelector() {
   const el = document.getElementById('retailerSelector');
   el.innerHTML = retailerSIMs.map(s => `
     <div class="rsim-card${activeRetailerSIM===s.id?' active':''}" onclick="setActiveRetailer(${s.id})">
-      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit Settings">
+      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit">
         <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </button>
       <div class="rsim-top">
         <span class="rsim-label">${s.label}</span>
         ${activeRetailerSIM===s.id?'<span class="rsim-active-badge">Active</span>':''}
       </div>
-      <div class="rsim-shortcode">Keyword: ${s.shortcode} &middot; Check: "${s.balCommand}" to ${s.balTarget}</div>
-      
-      <div class="rsim-identity-wrap">
-        <span>Hardware Identity:</span>
-        <span class="rsim-identity-val">${s.identity || 'Not read yet'}</span>
-      </div>
-      
-      <div class="rsim-balance-wrap">
-        <span>Wallet Balance:</span>
-        <span class="rsim-balance-val" id="rsim-bal-display-${s.id}">${s.balance || '₱--.--'}</span>
-      </div>
-      
-      <div class="rsim-actions">
-         <button class="btn btn-sm" style="padding: 4px 10px; font-size:11px;" onclick="checkBalanceIntent(event, '${s.balCommand}', '${s.balTarget}')">Check Bal (Intent)</button>
-      </div>
+      <div class="rsim-shortcode">Shortcode: ${s.shortcode}</div>
     </div>`).join('');
-
-  const headerBadge = document.getElementById('activeRouteHeaderBadge');
-  if (headerBadge) {
-    const activeProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
-    headerBadge.textContent = activeProfile ? `Active: ${activeProfile.label}` : 'No Active Route';
-  }
 }
 
 function setActiveRetailer(id) {
@@ -804,7 +675,7 @@ function setActiveRetailer(id) {
   LS.set('fl_active_retailer', id);
   renderRetailerSelector();
   const sim = retailerSIMs.find(s=>s.id===id);
-  showToast(`Switched active route to ${sim.label}`);
+  showToast(`Using ${sim.label}`);
 }
 
 function openRetailerEdit(e, id) {
@@ -813,8 +684,6 @@ function openRetailerEdit(e, id) {
   const sim = retailerSIMs.find(s=>s.id===id);
   document.getElementById('rLabel').value = sim.label;
   document.getElementById('rShortcode').value = sim.shortcode;
-  document.getElementById('rBalCommand').value = sim.balCommand || 'BAL';
-  document.getElementById('rBalTarget').value = sim.balTarget || '2256';
   document.getElementById('retailerEditTitle').textContent = `Edit ${sim.label}`;
   document.getElementById('retailerEditPanel').style.display = 'block';
 }
@@ -827,22 +696,13 @@ function closeRetailerEdit() {
 function saveRetailerSIM() {
   const label = document.getElementById('rLabel').value.trim();
   const shortcode = document.getElementById('rShortcode').value.trim();
-  const cmd = document.getElementById('rBalCommand').value.trim();
-  const target = document.getElementById('rBalTarget').value.trim();
-  
-  if (!label || !shortcode || !cmd || !target) { showToast('Please completely fill out configuration fields'); return; }
-  
+  if (!label || !shortcode) { showToast('Fill in label and shortcode'); return; }
   const idx = retailerSIMs.findIndex(s=>s.id===editingRetailerID);
-  if (idx>-1) { 
-    retailerSIMs[idx].label = label; 
-    retailerSIMs[idx].shortcode = shortcode; 
-    retailerSIMs[idx].balCommand = cmd;
-    retailerSIMs[idx].balTarget = target;
-  }
+  if (idx>-1) { retailerSIMs[idx].label=label; retailerSIMs[idx].shortcode=shortcode; }
   saveRetailerSIMs();
   closeRetailerEdit();
   renderRetailerSelector();
-  showToast('SIM profile configurations updated!');
+  showToast('SIM updated!');
 }
 
 function getActiveShortcode() {
@@ -850,307 +710,203 @@ function getActiveShortcode() {
   return sim ? sim.shortcode : '2+';
 }
 
-// ══ Check Balance Logic ═══════════════════════════════════════════════════════
-function checkBalanceIntent(e, text, targetNum) {
-  e.stopPropagation(); 
-  window.location.href = `sms:${targetNum}?body=${encodeURIComponent(text)}`;
-  showToast(`Redirecting out to System Messages App to pull verification...`);
-}
-
-async function checkBalanceHardware() {
-  if(!serialPort || !serialPort.writable) {
-    showToast('SIM reader must be physically connected to process background commands');
-    return;
-  }
-  const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
-  if(!currentProfile) return;
-  
-  try {
-    atLog(`Initiating underlying balance check via background hardware pipeline...`, 'sent');
-    showToast(`Sending balance text string to network...`);
-    
-    // Command Sequence: Send SMS text out to carrier shortcode
-    await sendAT(`AT+CMGS="${currentProfile.balTarget}"`);
-    await delay(300);
-    
-    // Pass raw dynamic SMS text token string body terminated explicitly with structural Ctrl+Z code hex code byte boundary indicator
-    if (serialPort && serialPort.writable) {
-      const writer = serialPort.writable.getWriter();
-      const encoder = new TextEncoder();
-      await writer.write(encoder.encode(currentProfile.balCommand + "\x1A"));
-      writer.releaseLock();
-      atLog(`Sent check instruction payload: "${currentProfile.balCommand}"`, 'sent');
-    }
-  } catch(err) {
-    atLog(`Balance dispatch exception: ${err.message}`, 'err');
-  }
-}
-
-// ══ Load via SMS ══════════════════════════════════════════════════════════════
-function smsLoadURL(num,amt) {
-  return `sms:${getActiveShortcode()}?body=${encodeURIComponent(`LOAD ${num} ${amt}`)}`;
-}
-
+// ══ Load via AT command (direct SMS through GSM modem) ════════════════════════
 async function sendSMSForMembers(ids) {
-  if(!amount){showToast('Set a load amount first');return false;}
-  
-  if (serialPort && serialPort.writable) {
-    showToast('Auto-detecting active hardware identity profile...');
-    const identityString = await sendATWithReply('AT+CNUM', 2000);
-    
-    let numMatch = identityString.match(/["'](\+?\d+)["']/);
-    let parsedIdentity = numMatch ? numMatch[1] : null;
+  if (!amount) { showToast('Set a load amount first'); return false; }
+  if (!activeCOM()) { showToast('Connect a COM port first in the SIM Reader tab'); return false; }
 
-    if (!parsedIdentity) {
-      const backupMatch = identityString.match(/\+?\d{10,12}/);
-      parsedIdentity = backupMatch ? backupMatch[0] : null;
-    }
+  const now = nowStr();
+  const targets = ids.map(id => members.find(x => x.id === id)).filter(Boolean);
 
-    const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
-    if (currentProfile && parsedIdentity) {
-      currentProfile.identity = parsedIdentity;
-      saveRetailerSIMs();
-      renderRetailerSelector();
-      atLog(`✅ SIM Identity Verified: operating line dynamically bound to [${parsedIdentity}]`, 'recv');
-    } else {
-      atLog(`⚠️ Identity Parsing Timeout: Port responded, but no MSISDN registry details were returned.`, 'err');
-    }
-  }
-
-  const now=nowStr();
-  ids.forEach((id,i)=>{
-    const m=members.find(x=>x.id===id); if(!m)return;
-    txHistory.unshift({id:Date.now()+i, name:m.name, num:m.num, amt:amount, date:now, status:'pending'});
-    setTimeout(()=>{ window.location.href=smsLoadURL(m.num,amount); }, i*600);
+  // Log all as pending first
+  targets.forEach((m, i) => {
+    history.unshift({ id: Date.now()+i, name: m.name, num: m.num, amt: amount, date: now, status: 'pending' });
   });
-  LS.set('fl_history',txHistory); return true;
+  LS.set('fl_history', history);
+
+  showToast(`Sending ${targets.length} SMS via ${activeCOM().label}…`);
+
+  // Send one by one with delay so modem isn't overwhelmed
+  for (let i = 0; i < targets.length; i++) {
+    const m = targets[i];
+    await sendLoadSMS(m.num, amount);
+    if (i < targets.length - 1) await delay(1500);
+  }
+  return true;
 }
 
-async function loadSelected() {
-  if(!selected.length){showToast('Select at least one member first');return;}
-  if(!amount){showToast('Set a load amount first');return;}
-  const count=selected.length;
-  const ok=await sendSMSForMembers(selected); if(!ok)return;
-  showToast(`Opening Messages for ${count} member${count>1?'s':''}… send each SMS`);
-  selected=[]; render();
+async function sendLoadSMS(toNumber, amt) {
+  const com = activeCOM();
+  if (!com || !com.port) { atLog('No active COM port connected', 'err'); return; }
+  const shortcode = getActiveShortcode();
+  const message   = `LOAD ${toNumber} ${amt}`;
+  atLog(`Sending SMS to ${shortcode}: ${message}`, 'sent');
+  try {
+    await sendAT('AT+CMGF=1');                          // text mode
+    await delay(200);
+    await sendAT(`AT+CMGS="${shortcode}"`);             // recipient
+    await delay(300);
+    await sendATRaw(message + '\x1A');                  // body + Ctrl+Z to send
+    atLog(`SMS queued for ${toNumber}`, 'recv');
+  } catch(e) {
+    atLog(`SMS send error: ${e.message}`, 'err');
+  }
 }
 
-async function loadAll() {
-  if(!members.length){showToast('No family members added yet');return;}
-  if(!amount){showToast('Set a load amount first');return;}
-  const ok=await sendSMSForMembers(members.map(m=>m.id)); if(!ok)return;
-  showToast(`Opening Messages for all ${members.length} members… send each SMS`);
-  selected=[]; render();
+async function sendATRaw(raw) {
+  const com = activeCOM();
+  if (!com || !com.port || !com.port.writable) return;
+  const writer = com.port.writable.getWriter();
+  await writer.write(new TextEncoder().encode(raw));
+  writer.releaseLock();
 }
 
-// ══ Web Serial Engine (WITH INFINITE RECONNECT PAT) ═══════════════════════════
-let serialPort=null, serialReader=null, serialWriter=null;
-let abortController=null; // Core logic addition patch for locking loop cycles cleanly
-let atBuffer='';
+function loadSelected() {
+  if (!selected.length) { showToast('Select at least one member first'); return; }
+  if (!amount) { showToast('Set a load amount first'); return; }
+  sendSMSForMembers(selected);
+  selected = []; render();
+}
+function loadAll() {
+  if (!members.length) { showToast('No family members added yet'); return; }
+  if (!amount) { showToast('Set a load amount first'); return; }
+  sendSMSForMembers(members.map(m => m.id));
+  selected = []; render();
+}
+
+// ══ COM Port Manager ══════════════════════════════════════════════════════════
+// comPorts: array of { id, label, port (SerialPort obj), reader, buffer, active }
+let comPorts = [];
+let activeCOMid = null;
 let receivedSMSList = LS.get('fl_sms') || [];
-let replyResolvers = [];
 
-function atLog(msg, type='recv') {
-  const el=document.getElementById('atLog');
-  if(!el) return;
-  const line=document.createElement('div');
-  line.className=`at-row-${type}`;
-  line.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
-  el.appendChild(line);
-  el.scrollTop=el.scrollHeight;
-}
+function activeCOM() { return comPorts.find(c => c.id === activeCOMid) || null; }
 
-function updateSimStatus(connected, error=false) {
-  const dot=document.getElementById('simStatusDot');
-  const txt=document.getElementById('simStatusText');
-  const cb =document.getElementById('connectBtn');
-  const db =document.getElementById('disconnectBtn');
-  if(!dot || !txt) return;
-  dot.className='status-dot'+(connected?' connected':error?' error':'');
-  txt.textContent=connected?'Connected — listening for SMS':error?'Connection error':'Not connected';
-  cb.style.display=connected?'none':'flex';
-  db.style.display=connected?'flex':'none';
-}
-
-async function connectSIM() {
-  if (!('serial' in navigator)) {
-    showToast('Web Serial not supported — use Chrome or Edge');
-    atLog('ERROR: Web Serial API not available in this browser. Use Chrome or Edge.','err');
+function renderCOMPorts() {
+  const list = document.getElementById('comPortList');
+  if (!comPorts.length) {
+    list.innerHTML = `<div style="font-size:13px;color:var(--text-hint);padding:8px 0">No COM ports added yet. Click "Add COM Port" to connect.</div>`;
     return;
   }
-  try {
-    serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: 9600, dataBits: 8, stopBits: 1, parity: 'none' });
-    
-    // Initialize standard state-locking control tokens before cycling readers
-    abortController = new AbortController();
-    
-    updateSimStatus(true);
-    atLog('Port successfully isolated and opened at 9600 baud','recv');
-    
-    // Start listener engine loops safely
-    readSerialLoop();
-    
-    await delay(500);
-    await sendAT('AT');
-    await delay(300);
-    await sendAT('AT+CMGF=1');   
-    await delay(300);
-    await sendAT('AT+CNMI=2,2,0,0,0'); 
-    await delay(300);
-    
-    showToast('Reading SIM account hardware profiles...');
-    const setupIdentity = await sendATWithReply('AT+CNUM', 2000);
-    let initializationMatch = setupIdentity.match(/["'](\+?\d+)["']/);
-    let identityResult = initializationMatch ? initializationMatch[1] : null;
-    
-    if(!identityResult) {
-      const backupMatch = setupIdentity.match(/\+?\d{10,12}/);
-      identityResult = backupMatch ? backupMatch[0] : null;
-    }
+  list.innerHTML = comPorts.map(c => `
+    <div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid ${c.id===activeCOMid?'var(--green)':'var(--border)'};border-radius:var(--radius-md);padding:10px 14px;cursor:pointer" onclick="setActiveCOM(${c.id})">
+      <div style="width:9px;height:9px;border-radius:50%;background:${c.connected?'var(--green)':'var(--red)'};flex-shrink:0;${c.connected&&c.id===activeCOMid?'box-shadow:0 0 0 3px var(--green-light)':''}"></div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:500;color:${c.id===activeCOMid?'var(--green-dark)':'var(--text)'}">${c.label} ${c.id===activeCOMid?'<span style="font-size:10px;background:var(--green);color:#fff;padding:1px 7px;border-radius:999px;margin-left:4px">Active sender</span>':''}</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${c.connected?'Connected — listening':'Disconnected'}</div>
+      </div>
+      <button class="btn btn-sm" onclick="disconnectCOM(event,${c.id})" style="padding:5px 10px;font-size:12px">${c.connected?'Disconnect':'Remove'}</button>
+    </div>`).join('');
+}
 
-    const matchedProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
-    if (matchedProfile && identityResult) {
-      matchedProfile.identity = identityResult;
-      saveRetailerSIMs();
-      renderRetailerSelector();
-    }
-    
-    await delay(300);
-    await sendAT('AT+CMGL="ALL"'); 
+async function addCOMPort() {
+  if (!('serial' in navigator)) {
+    showToast('Use Chrome or Edge — Web Serial API required');
+    atLog('ERROR: Web Serial not available. Use Chrome or Edge.', 'err'); return;
+  }
+  try {
+    const port = await navigator.serial.requestPort();
+    const baud = parseInt(document.getElementById('baudSelect').value, 10);
+    await port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none' });
+    const id = Date.now();
+    const label = `COM Port ${comPorts.length + 1}`;
+    const com = { id, label, port, reader: null, buffer: '', connected: true };
+    comPorts.push(com);
+    if (!activeCOMid) activeCOMid = id;
+    atLog(`${label} opened at ${baud} baud`, 'recv');
+    renderCOMPorts();
+    startReadingCOM(com);
+    // Init modem
+    await delay(400);
+    await sendATOnCOM(com, 'AT');
+    await delay(200);
+    await sendATOnCOM(com, 'AT+CMGF=1');
+    await delay(200);
+    await sendATOnCOM(com, 'AT+CNMI=2,2,0,0,0');
+    await delay(200);
+    await sendATOnCOM(com, 'AT+CMGL="ALL"');
+    showToast(`${label} connected!`);
   } catch(e) {
-    updateSimStatus(false, true);
-    atLog(`ERROR: ${e.message}`,'err');
-    showToast('Could not connect to SIM reader');
+    atLog(`Connect error: ${e.message}`, 'err');
+    showToast('Could not open COM port');
   }
 }
 
-async function disconnectSIM() {
-  // Graceful tearing procedure: Kill execution loops instantly via structural control flags before resetting streams
-  if (abortController) {
-    abortController.abort();
-    abortController = null;
+function setActiveCOM(id) {
+  activeCOMid = id;
+  renderCOMPorts();
+  const com = comPorts.find(c=>c.id===id);
+  showToast(`${com.label} set as active sender`);
+}
+
+async function disconnectCOM(e, id) {
+  e.stopPropagation();
+  const com = comPorts.find(c=>c.id===id);
+  if (com) {
+    try { if(com.reader){ await com.reader.cancel(); com.reader=null; } } catch(x){}
+    try { await com.port.close(); } catch(x){}
+    com.connected = false;
   }
-  
-  try {
-    if(serialReader){ 
-      await serialReader.cancel(); 
-      await delay(100);
-    }
-  } catch(e) {}
-  
-  try {
-    if(serialPort) { 
-      await serialPort.close(); 
-      serialPort=null; 
-    }
-  } catch(e) {}
-  
-  updateSimStatus(false);
-  atLog('Disconnected safely from current device channel','recv');
+  comPorts = comPorts.filter(c=>c.id!==id);
+  if (activeCOMid===id) activeCOMid = comPorts[0]?.id || null;
+  renderCOMPorts();
+  atLog(`COM Port disconnected`, 'recv');
 }
 
-function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-async function sendAT(cmd) {
-  if(!serialPort||!serialPort.writable){ return; }
-  try {
-    const writer=serialPort.writable.getWriter();
-    const enc=new TextEncoder();
-    atLog(`→ ${cmd}`, 'sent');
-    await writer.write(enc.encode(cmd+'\r\n'));
-    writer.releaseLock();
-  } catch(e){ atLog(`Send error: ${e.message}`,'err'); }
-}
-
-async function sendATWithReply(cmd, timeoutMs = 2000) {
-  if(!serialPort || !serialPort.writable) return '';
-  return new Promise(async (resolve) => {
-    const trackingObj = {
-      buffer: '',
-      resolver: (data) => resolve(data)
-    };
-    replyResolvers.push(trackingObj);
-    
-    setTimeout(() => {
-      replyResolvers = replyResolvers.filter(r => r !== trackingObj);
-      resolve(trackingObj.buffer);
-    }, timeoutMs);
-
-    await sendAT(cmd);
-  });
-}
-
-async function readSerialLoop() {
+async function startReadingCOM(com) {
   const decoder = new TextDecoder();
-  
-  while (serialPort && serialPort.readable && abortController && !abortController.signal.aborted) {
-    try {
-      // Stream linking through dynamic abort pipelines prevents unexpected port locking
-      serialReader = serialPort.readable.getReader();
-      
-      while (serialPort && serialPort.readable && abortController && !abortController.signal.aborted) {
-        const { value, done } = await serialReader.read();
-        if (done) break; 
-        
-        atBuffer += decoder.decode(value);
-        processATBuffer();
+  try {
+    while (com.port && com.port.readable) {
+      com.reader = com.port.readable.getReader();
+      while (true) {
+        const { value, done } = await com.reader.read();
+        if (done) break;
+        com.buffer += decoder.decode(value);
+        processBuffer(com);
       }
-    } catch (e) {
-      // Disconnection loop fix structural intercept
-      if (abortController && abortController.signal.aborted) {
-        atLog("Background processes shut down successfully.", "recv");
-        break; 
-      }
-      
-      if (e.name === 'NetworkError' || e.message.includes('The device has been disconnected') || e.message.includes('The serial port was closed')) {
-        atLog(`Hardware connection lost. Aborting internal processes.`, 'err');
-        updateSimStatus(false, true);
-        break; // BREAK out completely to fix the loop
-      } else {
-        atLog(`Read intercept error: ${e.message}`, 'err');
-        break; 
-      }
-    } finally {
-      if (serialReader) {
-        try {
-          serialReader.releaseLock();
-          serialReader = null;
-        } catch(x) {}
-      }
+      com.reader.releaseLock(); com.reader = null;
     }
-    
-    await delay(100); // Breathe check buffer iteration padding space
+  } catch(e) {
+    if (com.reader) { try { com.reader.releaseLock(); } catch(x){} com.reader=null; }
+    if (e.name !== 'NetworkError') atLog(`Read error on ${com.label}: ${e.message}`, 'err');
+    com.connected = false;
+    renderCOMPorts();
   }
 }
 
-function processATBuffer() {
-  const lines=atBuffer.split('\r\n');
-  atBuffer=lines.pop(); 
-  lines.forEach(line=>{
-    const l=line.trim(); if(!l)return;
-    atLog(l,'recv');
-    
-    replyResolvers.forEach(tracker => {
-      tracker.buffer += l + '\n';
-      if(l === 'OK' || l === 'ERROR') {
-        tracker.resolver(tracker.buffer);
-        replyResolvers = replyResolvers.filter(r => r !== tracker);
-      }
-    });
-
+function processBuffer(com) {
+  const lines = com.buffer.split('\r\n');
+  com.buffer = lines.pop();
+  lines.forEach(line => {
+    const l = line.trim(); if (!l) return;
+    atLog(`[${com.label}] ${l}`, 'recv');
     parseSMSLine(l);
   });
 }
 
+async function sendATOnCOM(com, cmd) {
+  if (!com.port || !com.port.writable) return;
+  const writer = com.port.writable.getWriter();
+  atLog(`→ [${com.label}] ${cmd}`, 'sent');
+  await writer.write(new TextEncoder().encode(cmd + '\r\n'));
+  writer.releaseLock();
+}
+
+async function sendAT(cmd) {
+  const com = activeCOM();
+  if (!com) { showToast('No active COM port'); return; }
+  await sendATOnCOM(com, cmd);
+}
+
+// ══ SMS parsing ═══════════════════════════════════════════════════════════════
 let smsParsing = null;
 function parseSMSLine(line) {
-  if(line.startsWith('+CMT:') || line.startsWith('+CMGL:')) {
+  if (line.startsWith('+CMT:') || line.startsWith('+CMGL:')) {
     const fromMatch = line.match(/"([^"]+)"/);
     smsParsing = { from: fromMatch ? fromMatch[1] : 'Unknown', time: nowStr() };
     return;
   }
-  if(smsParsing && line.length > 0 && !line.startsWith('+') && !line.startsWith('AT')) {
+  if (smsParsing && line.length > 0 && !line.startsWith('+') && !line.startsWith('AT') && !line.startsWith('OK')) {
     smsParsing.body = line;
     handleIncomingSMS(smsParsing);
     smsParsing = null;
@@ -1159,68 +915,52 @@ function parseSMSLine(line) {
 
 function handleIncomingSMS(sms) {
   const { from, body, time } = sms;
-  
-  // Clean dynamic target fields
-  const cleanFrom = from.replace(/[\s\-\+]/g,'');
-  const currentProfile = retailerSIMs.find(s => s.id === activeRetailerSIM);
-  
-  // RegEx mapping to grab structural credit strings like: "Bal: P500.50", "Balance 150.00", "Load Wallet: Php 1200"
-  const balMatch = body.match(/(?:bal|balance|wallet|credit|php|p)[\s\:\₱\==]*([\d,]+\.\d{2})/i);
-  
-  if (balMatch && currentProfile && (cleanFrom.includes(currentProfile.balTarget) || cleanFrom.length <= 5)) {
-    const parsedBal = "₱" + balMatch[1];
-    currentProfile.balance = parsedBal;
-    saveRetailerSIMs();
-    renderRetailerSelector();
-    atLog(`🎉 Balance dynamic parse matched: [${parsedBal}] from network`, 'recv');
-    showToast(`Balance updated: ${parsedBal}`);
-  }
-
-  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$|2256/.test(from.replace(/\s/g,''));
   const isSuccess = /success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
   const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
-
-  const numMatch = body.match(/09\d{9}/);
+  const numMatch  = body.match(/09\d{9}/);
   const loadedNum = numMatch ? numMatch[0] : null;
 
   receivedSMSList.unshift({ from, body, time, status });
-  LS.set('fl_sms', receivedSMSList.slice(0,50));
+  LS.set('fl_sms', receivedSMSList.slice(0, 100));
   renderSMSList();
 
-  if(loadedNum || isFromShortcode) {
-    let updated = false;
-    for(let i=0; i<txHistory.length; i++) {
-      const h=txHistory[i];
-      if(h.status==='pending' && (loadedNum===h.num || (!loadedNum && isFromShortcode))) {
-        txHistory[i].status = status;
-        updated=true;
-        if(!loadedNum) break; 
+  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$/.test(from.replace(/\s/g,''));
+  if (loadedNum || isFromShortcode) {
+    for (let i = 0; i < history.length; i++) {
+      const h = history[i];
+      if (h.status === 'pending' && (loadedNum === h.num || (!loadedNum && isFromShortcode))) {
+        history[i].status = status;
+        if (!loadedNum) break;
       }
     }
-    if(updated) {
-      LS.set('fl_history',txHistory);
-      showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed — check SMS' : '📩 SMS received');
-      if (document.getElementById('page-history').classList.contains('active')) {
-        renderHistoryFull();
-      }
-    }
+    LS.set('fl_history', history);
+    if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
+    showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 SMS from 2+');
   }
 }
 
 function renderSMSList() {
-  const list=document.getElementById('smsList');
-  if(!list) return;
-  if(!receivedSMSList.length){
-    list.innerHTML='<div class="empty-state" style="padding:20px">No messages yet — connect your SIM reader to start listening.</div>';
+  const list = document.getElementById('smsList');
+  if (!receivedSMSList.length) {
+    list.innerHTML = '<div class="empty-state" style="padding:20px">No messages yet — connect a COM port to start listening.</div>';
     return;
   }
-  list.innerHTML=receivedSMSList.slice(0,20).map(s=>`
+  list.innerHTML = receivedSMSList.slice(0, 30).map(s => `
     <div class="sms-entry">
       <div class="sms-from">From: ${s.from}</div>
       <div class="sms-body ${s.status==='success'?'success-msg':s.status==='failed'?'failed-msg':''}">${s.body}</div>
       <div class="sms-time">${s.time}</div>
     </div>`).join('');
+}
+
+function atLog(msg, type='recv') {
+  const el = document.getElementById('atLog');
+  const line = document.createElement('div');
+  line.className = `at-row-${type}`;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
 }
 
 // ══ Keyboard shortcuts ════════════════════════════════════════════════════════
