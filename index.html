@@ -453,6 +453,10 @@ const COLORS_LIST = ['teal','blue','coral','amber','purple'];
 const CHECK_SVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 // ══ Helpers ═══════════════════════════════════════════════════════════════════
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+ 
 function nowStr() {
   const d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
   return `Today ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
