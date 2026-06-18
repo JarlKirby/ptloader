@@ -741,19 +741,24 @@ async function sendSMSForMembers(ids) {
 
 async function sendLoadSMS(toNumber, amt) {
   const com = activeCOM();
-  if (!com || !com.port) { atLog('No active COM port connected', 'err'); return; }
+  if (!com || !com.port) { atLog('No active COM port', 'err'); return; }
+  
   const shortcode = getActiveShortcode();
-  const message   = `LOAD ${toNumber} ${amt}`;
-  atLog(`Sending SMS to ${shortcode}: ${message}`, 'sent');
+  const message = `LOAD ${toNumber} ${amt}`;
+  
   try {
-    await sendAT('AT+CMGF=1');                          // text mode
-    await delay(200);
-    await sendAT(`AT+CMGS="${shortcode}"`);             // recipient
-    await delay(300);
-    await sendATRaw(message + '\x1A');                  // body + Ctrl+Z to send
-    atLog(`SMS queued for ${toNumber}`, 'recv');
+    await sendAT('AT+CMGF=1'); // Text Mode
+    await delay(500); 
+    
+    // Some modems need to know the length or specific encoding
+    await sendAT(`AT+CMGS="${shortcode}"`);
+    await delay(1000); // Wait longer for the '>' prompt
+    
+    // Send message + Ctrl+Z (ASCII 26)
+    await sendATRaw(message + String.fromCharCode(26));
+    atLog(`SMS sent to ${toNumber}`, 'recv');
   } catch(e) {
-    atLog(`SMS send error: ${e.message}`, 'err');
+    atLog(`Error: ${e.message}`, 'err');
   }
 }
 
