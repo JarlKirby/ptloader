@@ -174,6 +174,17 @@
   .h-status.failed  { background: var(--red-light); color: var(--red-dark); }
   .empty-state { text-align: center; padding: 24px 0; color: var(--text-hint); font-size: 14px; }
 
+  /* History filter bar */
+  .hist-filter-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+  .hist-filter-bar input { flex: 1; padding: 9px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--surface); font-size: 14px; color: var(--text); font-family: var(--font); outline: none; transition: border-color .15s; }
+  .hist-filter-bar input:focus { border-color: var(--green); }
+  .hist-filter-bar select { padding: 9px 12px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: var(--surface); font-size: 13px; color: var(--text); font-family: var(--font); outline: none; cursor: pointer; }
+  .hist-actions-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .hist-count { font-size: 12px; color: var(--text-hint); }
+  .h-delete { width: 26px; height: 26px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-hint); transition: all .15s; flex-shrink: 0; }
+  .h-delete:hover { background: var(--red-light); color: var(--red); }
+  .h-delete svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
   /* ── SIM Reader page ── */
   .sim-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; }
   .sim-card h3 { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
@@ -251,6 +262,10 @@
     <button class="btn btn-sm" onclick="clearSel()">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Clear
     </button>
+    <button class="btn btn-sm btn-red" onclick="deleteAllMembers()">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg> 
+      Delete all
+    </button>
   </div>
   <div class="members-grid" id="membersGrid"></div>
 
@@ -314,19 +329,12 @@
     <div class="total-pill" id="totalPill"></div>
   </div>
 
-  <div class="section-label">Retailer SIM</div>
-  <div class="retailer-selector" id="retailerSelector"></div>
-  <div id="retailerEditPanel" style="display:none">
-    <div class="sim-card" style="margin-top:10px">
-      <h3 id="retailerEditTitle">Edit SIM</h3>
-      <div class="form-grid" style="margin-bottom:10px">
-        <label>Label<input type="text" id="rLabel" placeholder="e.g. SIM 1 - Globe" /></label>
-        <label>Shortcode<input type="text" id="rShortcode" placeholder="e.g. 2+" /></label>
-      </div>
-      <div class="form-btns">
-        <button class="btn btn-green btn-sm" onclick="saveRetailerSIM()">Save</button>
-        <button class="btn btn-sm" onclick="closeRetailerEdit()">Cancel</button>
-      </div>
+  <div class="section-label">Active SIM (for loading)</div>
+  <div class="retailer-info" id="activeSimDisplay">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <div>
+      <div class="retailer-label" id="activeSimLabel">No SIM connected</div>
+      <div class="retailer-sub">Manage and switch SIMs in the <a href="#" onclick="showPage('sim');return false;" style="color:var(--green)">SIM Reader tab</a>.</div>
     </div>
   </div>
 
@@ -334,11 +342,11 @@
   <div class="action-grid">
     <button class="btn btn-green full" onclick="loadSelected()">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Load selected via SMS &nbsp;<span id="selCountBadge" style="background:rgba(255,255,255,0.25);border-radius:999px;padding:1px 9px;font-size:13px">0</span>
+      Load selected via USSD &nbsp;<span id="selCountBadge" style="background:rgba(255,255,255,0.25);border-radius:999px;padding:1px 9px;font-size:13px">0</span>
     </button>
     <button class="btn btn-red full" onclick="loadAll()">
       <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Load ALL family via SMS
+      Load ALL family via USSD
     </button>
   </div>
 
@@ -349,7 +357,26 @@
 <div class="page" id="page-history">
 <div class="main">
   <div class="section-label" style="margin-top:0">Load history</div>
-  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tap the dot on any entry to toggle its status manually, or connect your SIM reader to update automatically.</p>
+  <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">Tap the dot to toggle status. Use filters to narrow down entries.</p>
+
+  <div class="hist-filter-bar">
+    <input type="text" id="histSearch" placeholder="Search name or number…" oninput="renderHistoryFull()" />
+    <select id="histStatusFilter" onchange="renderHistoryFull()">
+      <option value="all">All statuses</option>
+      <option value="pending">Pending</option>
+      <option value="success">Success</option>
+      <option value="failed">Failed</option>
+    </select>
+  </div>
+
+  <div class="hist-actions-bar">
+    <span class="hist-count" id="histCount"></span>
+    <button class="btn btn-sm" onclick="clearAllHistory()">
+      <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+      Clear all
+    </button>
+  </div>
+
   <div class="history-list" id="historyListFull"></div>
 </div>
 </div>
@@ -361,7 +388,7 @@
   <div class="section-label" style="margin-top:0">SIM card reader</div>
 
   <div class="info-box" style="margin-bottom:14px">
-    <b>How it works:</b> Click <b>Add COM Port</b> to connect a port from your multi-SIM reader. You can add multiple ports — one per SIM slot. The active SIM sends the load SMS directly via AT commands. Replies from <b>2+</b> automatically update History dots to ✅ or ❌.
+    <b>How it works:</b> Click <b>Add COM Port</b> to connect a port from your multi-SIM reader. You can add multiple ports — one per SIM slot. The active SIM sends the load via USSD (<b>*100*1*number*4*1*amount#</b>) directly through AT commands. The USSD reply automatically updates History dots to ✅ or ❌.
   </div>
 
   <div class="sim-card">
@@ -401,7 +428,7 @@
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=\"ALL\"')">Read SMS</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=`ALL`')">Read SMS</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
     </div>
   </div>
@@ -437,9 +464,9 @@ const LS = {
 // ══ State ═════════════════════════════════════════════════════════════════════
 let members = LS.get('fl_members') || [];
 let history = LS.get('fl_history') || [];
-let presets = LS.get('fl_presets') || [20, 50, 100, 150, 300];
+let presets = LS.get('fl_presets') || [1, 20, 50, 100, 150, 300];
 let selected = [];
-let amount   = 50;
+let amount   = 1;
 
 // ══ Colors ════════════════════════════════════════════════════════════════════
 const COLORS = {
@@ -453,10 +480,6 @@ const COLORS_LIST = ['teal','blue','coral','amber','purple'];
 const CHECK_SVG = `<svg viewBox="0 0 24 24" style="width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round"><polyline points="20 6 9 17 4 12"/></svg>`;
 
 // ══ Helpers ═══════════════════════════════════════════════════════════════════
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
- 
 function nowStr() {
   const d=new Date(), h=d.getHours(), m=String(d.getMinutes()).padStart(2,'0');
   return `Today ${h%12||12}:${m} ${h>=12?'PM':'AM'}`;
@@ -527,8 +550,27 @@ function renderBanner() {
 // ══ Render: History ═══════════════════════════════════════════════════════════
 function renderHistoryFull() {
   const list = document.getElementById('historyListFull');
-  if (!history.length) { list.innerHTML=`<div class="empty-state">No loads recorded yet.</div>`; return; }
-  list.innerHTML = history.map((h,i)=>`
+  const countEl = document.getElementById('histCount');
+  const searchEl = document.getElementById('histSearch');
+  const filterEl = document.getElementById('histStatusFilter');
+  const query  = (searchEl ? searchEl.value : '').trim().toLowerCase();
+  const status = filterEl ? filterEl.value : 'all';
+
+  // Map filtered entries back to their real index in `history` so toggle/delete work correctly
+  const filtered = history
+    .map((h, i) => ({ h, i }))
+    .filter(({ h }) => {
+      const matchesStatus = status === 'all' || h.status === status;
+      const matchesQuery  = !query || h.name.toLowerCase().includes(query) || h.num.includes(query);
+      return matchesStatus && matchesQuery;
+    });
+
+  if (countEl) countEl.textContent = `${filtered.length} of ${history.length} entries`;
+
+  if (!history.length) { list.innerHTML = `<div class="empty-state">No loads recorded yet.</div>`; return; }
+  if (!filtered.length) { list.innerHTML = `<div class="empty-state">No entries match your filter.</div>`; return; }
+
+  list.innerHTML = filtered.map(({ h, i }) => `
     <div class="history-item">
       <div class="h-dot ${h.status}" onclick="toggleHistoryStatus(${i})" title="Click to toggle status"></div>
       <div class="h-info">
@@ -538,6 +580,9 @@ function renderHistoryFull() {
       <div style="display:flex;align-items:center;gap:8px">
         <div class="h-amt">₱${h.amt}</div>
         <span class="h-status ${h.status}">${h.status==='pending'?'Pending':h.status==='success'?'Success':'Failed'}</span>
+        <button class="h-delete" onclick="deleteHistoryItem(${i})" title="Delete entry">
+          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+        </button>
       </div>
     </div>`).join('');
 }
@@ -547,6 +592,22 @@ function toggleHistoryStatus(i) {
   history[i].status = cycle[history[i].status] || 'pending';
   LS.set('fl_history', history);
   renderHistoryFull();
+}
+
+function deleteHistoryItem(i) {
+  history.splice(i, 1);
+  LS.set('fl_history', history);
+  renderHistoryFull();
+  showToast('Entry deleted');
+}
+
+function clearAllHistory() {
+  if (!history.length) { showToast('History is already empty'); return; }
+  if (!confirm(`Delete all ${history.length} history entries? This can't be undone.`)) return;
+  history = [];
+  LS.set('fl_history', history);
+  renderHistoryFull();
+  showToast('History cleared');
 }
 
 // ══ Member actions ════════════════════════════════════════════════════════════
@@ -649,73 +710,21 @@ function savePreset() {
 }
 document.getElementById('presetModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closePresetModal();});
 
-// ══ Retailer SIMs ═════════════════════════════════════════════════════════════
-let retailerSIMs = LS.get('fl_retailer_sims') || [
-  { id: 1, label: 'SIM 1 — Globe', shortcode: '2+' },
-  { id: 2, label: 'SIM 2 — Globe', shortcode: '2+' }
-];
-let activeRetailerSIM = LS.get('fl_active_retailer') || 1;
-let editingRetailerID = null;
-
-function saveRetailerSIMs() { LS.set('fl_retailer_sims', retailerSIMs); }
-
-function renderRetailerSelector() {
-  const el = document.getElementById('retailerSelector');
-  el.innerHTML = retailerSIMs.map(s => `
-    <div class="rsim-card${activeRetailerSIM===s.id?' active':''}" onclick="setActiveRetailer(${s.id})">
-      <button class="rsim-edit" onclick="openRetailerEdit(event,${s.id})" title="Edit">
-        <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </button>
-      <div class="rsim-top">
-        <span class="rsim-label">${s.label}</span>
-        ${activeRetailerSIM===s.id?'<span class="rsim-active-badge">Active</span>':''}
-      </div>
-      <div class="rsim-shortcode">Shortcode: ${s.shortcode}</div>
-    </div>`).join('');
+// ══ Active SIM display (Load tab) — mirrors active COM port ════════════════════
+function renderActiveSimDisplay() {
+  const labelEl = document.getElementById('activeSimLabel');
+  if (!labelEl) return;
+  const com = activeCOM();
+  labelEl.textContent = com ? `${com.label} ${com.connected ? '(connected)' : '(disconnected)'}` : 'No SIM connected';
 }
 
-function setActiveRetailer(id) {
-  activeRetailerSIM = id;
-  LS.set('fl_active_retailer', id);
-  renderRetailerSelector();
-  const sim = retailerSIMs.find(s=>s.id===id);
-  showToast(`Using ${sim.label}`);
+// ══ Load via USSD (direct through GSM modem) ═══════════════════════════════════
+function buildUSSDCode(toNumber, amt) {
+  // Retailer menu-path USSD: *100*1*<number>*4*1*<amount>#
+  return `*100*1*${toNumber}*4*1*${amt}#`;
 }
 
-function openRetailerEdit(e, id) {
-  e.stopPropagation();
-  editingRetailerID = id;
-  const sim = retailerSIMs.find(s=>s.id===id);
-  document.getElementById('rLabel').value = sim.label;
-  document.getElementById('rShortcode').value = sim.shortcode;
-  document.getElementById('retailerEditTitle').textContent = `Edit ${sim.label}`;
-  document.getElementById('retailerEditPanel').style.display = 'block';
-}
-
-function closeRetailerEdit() {
-  document.getElementById('retailerEditPanel').style.display = 'none';
-  editingRetailerID = null;
-}
-
-function saveRetailerSIM() {
-  const label = document.getElementById('rLabel').value.trim();
-  const shortcode = document.getElementById('rShortcode').value.trim();
-  if (!label || !shortcode) { showToast('Fill in label and shortcode'); return; }
-  const idx = retailerSIMs.findIndex(s=>s.id===editingRetailerID);
-  if (idx>-1) { retailerSIMs[idx].label=label; retailerSIMs[idx].shortcode=shortcode; }
-  saveRetailerSIMs();
-  closeRetailerEdit();
-  renderRetailerSelector();
-  showToast('SIM updated!');
-}
-
-function getActiveShortcode() {
-  const sim = retailerSIMs.find(s=>s.id===activeRetailerSIM);
-  return sim ? sim.shortcode : '2+';
-}
-
-// ══ Load via AT command (direct SMS through GSM modem) ════════════════════════
-async function sendSMSForMembers(ids) {
+async function sendLoadsViaUSSD(ids) {
   if (!amount) { showToast('Set a load amount first'); return false; }
   if (!activeCOM()) { showToast('Connect a COM port first in the SIM Reader tab'); return false; }
 
@@ -728,58 +737,40 @@ async function sendSMSForMembers(ids) {
   });
   LS.set('fl_history', history);
 
-  showToast(`Sending ${targets.length} SMS via ${activeCOM().label}…`);
+  showToast(`Sending ${targets.length} USSD load${targets.length>1?'s':''} via ${activeCOM().label}…`);
 
-  // Send one by one with delay so modem isn't overwhelmed
+  // Send one by one — USSD sessions must complete before the next starts
   for (let i = 0; i < targets.length; i++) {
     const m = targets[i];
-    await sendLoadSMS(m.num, amount);
-    if (i < targets.length - 1) await delay(1500);
+    await sendLoadUSSD(m.num, amount);
+    if (i < targets.length - 1) await delay(3000); // give modem time to close the USSD session
   }
   return true;
 }
 
-async function sendLoadSMS(toNumber, amt) {
+async function sendLoadUSSD(toNumber, amt) {
   const com = activeCOM();
-  if (!com || !com.port) { atLog('No active COM port', 'err'); return; }
-  
-  const shortcode = getActiveShortcode();
-  const message = `LOAD ${toNumber} ${amt}`;
-  
+  if (!com || !com.port) { atLog('No active COM port connected', 'err'); return; }
+  const code = buildUSSDCode(toNumber, amt);
+  atLog(`Sending USSD: ${code}`, 'sent');
   try {
-    await sendAT('AT+CMGF=1'); // Text Mode
-    await delay(500); 
-    
-    // Some modems need to know the length or specific encoding
-    await sendAT(`AT+CMGS="${shortcode}"`);
-    await delay(1000); // Wait longer for the '>' prompt
-    
-    // Send message + Ctrl+Z (ASCII 26)
-    await sendATRaw(message + String.fromCharCode(26));
-    atLog(`SMS sent to ${toNumber}`, 'recv');
+    await sendAT('AT+CUSD=1,"' + code + '",15'); // 15 = GSM 7-bit default alphabet
+    atLog(`USSD session started for ${toNumber}`, 'recv');
   } catch(e) {
-    atLog(`Error: ${e.message}`, 'err');
+    atLog(`USSD send error: ${e.message}`, 'err');
   }
-}
-
-async function sendATRaw(raw) {
-  const com = activeCOM();
-  if (!com || !com.port || !com.port.writable) return;
-  const writer = com.port.writable.getWriter();
-  await writer.write(new TextEncoder().encode(raw));
-  writer.releaseLock();
 }
 
 function loadSelected() {
   if (!selected.length) { showToast('Select at least one member first'); return; }
   if (!amount) { showToast('Set a load amount first'); return; }
-  sendSMSForMembers(selected);
+  sendLoadsViaUSSD(selected);
   selected = []; render();
 }
 function loadAll() {
   if (!members.length) { showToast('No family members added yet'); return; }
   if (!amount) { showToast('Set a load amount first'); return; }
-  sendSMSForMembers(members.map(m => m.id));
+  sendLoadsViaUSSD(members.map(m => m.id));
   selected = []; render();
 }
 
@@ -795,6 +786,7 @@ function renderCOMPorts() {
   const list = document.getElementById('comPortList');
   if (!comPorts.length) {
     list.innerHTML = `<div style="font-size:13px;color:var(--text-hint);padding:8px 0">No COM ports added yet. Click "Add COM Port" to connect.</div>`;
+    renderActiveSimDisplay();
     return;
   }
   list.innerHTML = comPorts.map(c => `
@@ -806,6 +798,7 @@ function renderCOMPorts() {
       </div>
       <button class="btn btn-sm" onclick="disconnectCOM(event,${c.id})" style="padding:5px 10px;font-size:12px">${c.connected?'Disconnect':'Remove'}</button>
     </div>`).join('');
+  renderActiveSimDisplay();
 }
 
 async function addCOMPort() {
@@ -819,7 +812,7 @@ async function addCOMPort() {
     await port.open({ baudRate: baud, dataBits: 8, stopBits: 1, parity: 'none' });
     const id = Date.now();
     const label = `COM Port ${comPorts.length + 1}`;
-    const com = { id, label, port, reader: null, buffer: '', connected: true };
+    const com = { id, label, port, reader: null, buffer: '', connected: true, stopping: false, simPollTimer: null, awaitingCPIN: false };
     comPorts.push(com);
     if (!activeCOMid) activeCOMid = id;
     atLog(`${label} opened at ${baud} baud`, 'recv');
@@ -829,11 +822,15 @@ async function addCOMPort() {
     await delay(400);
     await sendATOnCOM(com, 'AT');
     await delay(200);
-    await sendATOnCOM(com, 'AT+CMGF=1');
+    await sendATOnCOM(com, 'AT+CMGF=1');       // text mode for incoming SMS
     await delay(200);
-    await sendATOnCOM(com, 'AT+CNMI=2,2,0,0,0');
+    await sendATOnCOM(com, 'AT+CNMI=2,2,0,0,0'); // route new SMS directly to serial
     await delay(200);
-    await sendATOnCOM(com, 'AT+CMGL="ALL"');
+    await sendATOnCOM(com, 'AT+CUSD=1');       // enable USSD result codes
+    await delay(200);
+    await sendATOnCOM(com, 'AT+CMGL="ALL"');   // read existing SMS
+    await delay(200);
+    startSIMPresencePoll(com);
     showToast(`${label} connected!`);
   } catch(e) {
     atLog(`Connect error: ${e.message}`, 'err');
@@ -850,36 +847,62 @@ function setActiveCOM(id) {
 
 async function disconnectCOM(e, id) {
   e.stopPropagation();
+  await teardownCOM(id, true);
+}
+
+async function teardownCOM(id, removeFromList) {
   const com = comPorts.find(c=>c.id===id);
   if (com) {
-    try { if(com.reader){ await com.reader.cancel(); com.reader=null; } } catch(x){}
-    try { await com.port.close(); } catch(x){}
     com.connected = false;
+    com.stopping = true;
+    try {
+      if (com.reader) { await com.reader.cancel().catch(()=>{}); }
+    } catch(x) {}
+    // Give the read loop a tick to actually exit after cancel()
+    await delay(50);
+    try { await com.port.close(); } catch(x) {}
+    if (com.simPollTimer) { clearInterval(com.simPollTimer); com.simPollTimer = null; }
   }
-  comPorts = comPorts.filter(c=>c.id!==id);
-  if (activeCOMid===id) activeCOMid = comPorts[0]?.id || null;
+  if (removeFromList) {
+    comPorts = comPorts.filter(c => c.id !== id);
+    if (activeCOMid === id) activeCOMid = comPorts[0]?.id || null;
+  }
   renderCOMPorts();
   atLog(`COM Port disconnected`, 'recv');
+}
+
+// Poll AT+CPIN? periodically to detect physical SIM removal
+function startSIMPresencePoll(com) {
+  com.simPollTimer = setInterval(async () => {
+    if (!com.connected || com.stopping) return;
+    com.awaitingCPIN = true;
+    await sendATOnCOM(com, 'AT+CPIN?').catch(()=>{});
+  }, 4000);
 }
 
 async function startReadingCOM(com) {
   const decoder = new TextDecoder();
   try {
-    while (com.port && com.port.readable) {
+    while (com.port && com.port.readable && !com.stopping) {
       com.reader = com.port.readable.getReader();
       while (true) {
         const { value, done } = await com.reader.read();
-        if (done) break;
+        if (done || com.stopping) break;
         com.buffer += decoder.decode(value);
         processBuffer(com);
       }
-      com.reader.releaseLock(); com.reader = null;
+      try { com.reader.releaseLock(); } catch(x){}
+      com.reader = null;
+      if (com.stopping) break;
     }
   } catch(e) {
     if (com.reader) { try { com.reader.releaseLock(); } catch(x){} com.reader=null; }
-    if (e.name !== 'NetworkError') atLog(`Read error on ${com.label}: ${e.message}`, 'err');
-    com.connected = false;
-    renderCOMPorts();
+    if (e.name !== 'NetworkError' && !com.stopping) atLog(`Read error on ${com.label}: ${e.message}`, 'err');
+    // Physical disconnect / lost device — treat as SIM removed
+    if (!com.stopping) {
+      atLog(`${com.label} lost connection — SIM may have been removed`, 'err');
+      await teardownCOM(com.id, true);
+    }
   }
 }
 
@@ -889,8 +912,62 @@ function processBuffer(com) {
   lines.forEach(line => {
     const l = line.trim(); if (!l) return;
     atLog(`[${com.label}] ${l}`, 'recv');
+
+    // SIM presence check (response to AT+CPIN?)
+    if (com.awaitingCPIN) {
+      if (l.startsWith('+CPIN:')) {
+        if (!/READY/.test(l)) handleSIMRemoved(com);
+        com.awaitingCPIN = false;
+        return;
+      }
+      if (l.includes('ERROR') || l.includes('+CME ERROR')) {
+        handleSIMRemoved(com);
+        com.awaitingCPIN = false;
+        return;
+      }
+    }
+
+    // USSD response (load confirmation/failure comes back this way)
+    if (l.startsWith('+CUSD:')) {
+      handleUSSDResponse(l);
+      return;
+    }
+
     parseSMSLine(l);
   });
+}
+
+function handleUSSDResponse(line) {
+  // Format: +CUSD: <status>,"<message>",<dcs>
+  const msgMatch = line.match(/"([^"]*)"/);
+  const body = msgMatch ? msgMatch[1] : line;
+  const time = nowStr();
+  const isSuccess = /success|loaded|credited|congratulations|na-?load/i.test(body);
+  const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala|denied/i.test(body);
+  const status = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
+  const numMatch = body.match(/09\d{9}/);
+  const loadedNum = numMatch ? numMatch[0] : null;
+
+  receivedSMSList.unshift({ from: 'USSD (*143#)', body, time, status });
+  LS.set('fl_sms', receivedSMSList.slice(0, 100));
+  renderSMSList();
+
+  for (let i = 0; i < history.length; i++) {
+    const h = history[i];
+    if (h.status === 'pending' && (loadedNum === h.num || !loadedNum)) {
+      history[i].status = status;
+      break; // USSD responses are sequential — update the oldest pending one
+    }
+  }
+  LS.set('fl_history', history);
+  if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
+  showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 USSD reply received');
+}
+
+function handleSIMRemoved(com) {
+  atLog(`${com.label}: no SIM detected`, 'err');
+  showToast(`SIM removed from ${com.label} — disconnecting`);
+  teardownCOM(com.id, true);
 }
 
 async function sendATOnCOM(com, cmd) {
@@ -979,10 +1056,26 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ closePresetModal(); document.getElementById('addFormPanel').classList.remove('open'); }
 });
 
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function deleteAllMembers() {
+  if (members.length === 0) {
+    showToast('No members to delete');
+    return;
+  }
+  if (confirm(`Are you sure you want to delete all ${members.length} family members? This cannot be undone.`)) {
+    members = [];
+    selected = [];
+    LS.set('fl_members', members);
+    render(); 
+    showToast('All members deleted');
+  }
+}
+
 // ══ Init ══════════════════════════════════════════════════════════════════════
 render();
-renderRetailerSelector();
 renderSMSList();
+renderCOMPorts();
 </script>
 </body>
 </html>
