@@ -958,11 +958,13 @@ function handleUSSDResponse(line) {
   const msgMatch = line.match(/"([^"]*)"/);
   const body = msgMatch ? msgMatch[1] : line;
   const time = nowStr();
-  const isSuccess = /success|loaded|credited|congratulations|na-?load/i.test(body);
+  const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-?load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala|denied/i.test(body);
   const status = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
   const numMatch = body.match(/09\d{9}/);
   const loadedNum = numMatch ? numMatch[0] : null;
+  const balMatch = body.match(/balance is P([\d.]+)/i);
+  const balNote = balMatch ? ` | Wallet: \u20b1${balMatch[1]}` : '';
 
   receivedSMSList.unshift({ from: 'USSD (*143#)', body, time, status });
   LS.set('fl_sms', receivedSMSList.slice(0, 100));
@@ -977,7 +979,7 @@ function handleUSSDResponse(line) {
   }
   LS.set('fl_history', history);
   if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
-  showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 USSD reply received');
+  showToast(isSuccess ? '✅ Load confirmed!' + balNote : isFailed ? '❌ Load failed' : '📩 USSD reply received');
 }
 
 function handleSIMRemoved(com) {
@@ -1026,7 +1028,7 @@ function parseSMSLine(line) {
 
 function handleIncomingSMS(sms) {
   const { from, body, time } = sms;
-  const isSuccess = /success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
+  const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
   const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
   const numMatch  = body.match(/09\d{9}/);
