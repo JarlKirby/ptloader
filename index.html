@@ -754,8 +754,8 @@ function renderActiveSimDisplay() {
 
 // ══ Load via USSD (direct through GSM modem) ═══════════════════════════════════
 function buildUSSDCode(toNumber, amt) {
-  // TM/Globe retailer load: *143*1*<number>*<amount>#
-  return `*143*1*${toNumber}*${amt}#`;
+  // TM/Globe Auto Load Max USSD
+  return `*143*2*${toNumber}*${amt}#`;
 }
 
 async function sendLoadsViaUSSD(ids) {
@@ -1093,14 +1093,19 @@ function handleIncomingSMS(sms) {
   const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
   const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
-  const numMatch  = body.match(/09\d{9}/);
-  const loadedNum = numMatch ? numMatch[0] : null;
+  // Match number with or without leading 0 (e.g. 9455606765 or 09455606765)
+  const numMatch  = body.match(/09\d{9}/) || body.match(/9\d{9}/);
+  const loadedNum = numMatch ? (numMatch[0].startsWith('0') ? numMatch[0] : '0' + numMatch[0]) : null;
+  // Also extract balance for toast
+  const balMatch  = body.match(/balance is P([\d.]+)/i);
+  const balNote   = balMatch ? ' | Wallet: ₱' + balMatch[1] : '';
 
   receivedSMSList.unshift({ from, body, time, status });
   LS.set('fl_sms', receivedSMSList.slice(0, 100));
   renderSMSList();
 
-  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$/.test(from.replace(/\s/g,''));
+  // Match AUTOLOADMAX and other known load shortcodes
+  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$|AUTOLOADMAX|AUTOLOAD/i.test(from.replace(/\s/g,''));
   if (loadedNum || isFromShortcode) {
     for (let i = 0; i < history.length; i++) {
       const h = history[i];
@@ -1111,7 +1116,14 @@ function handleIncomingSMS(sms) {
     }
     LS.set('fl_history', history);
     if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
-    showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 SMS from 2+');
+    showToast(isSuccess ? '✅ Load confirmed!' + balNote : isFailed ? '❌ Load failed' : '📩 SMS from AUTOLOADMAX');
+    // Update wallet balance display if visible
+    if (balMatch) {
+      const amtEl = document.getElementById('balanceAmount');
+      const timeEl = document.getElementById('balanceTime');
+      if (amtEl) { amtEl.textContent = '₱' + balMatch[1]; amtEl.style.color = 'var(--green-dark)'; }
+      if (timeEl) { timeEl.textContent = nowStr(); }
+    }
   }
 }
 
