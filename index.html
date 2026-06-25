@@ -422,6 +422,30 @@
   </div>
 
   <div class="sim-card">
+    <h3>Retailer wallet balance</h3>
+    <p style="margin-bottom:12px">Check your retailer SIM’s remaining load wallet via USSD.</p>
+    <div id="balanceDisplay" style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-hint);margin-bottom:4px">Wallet Balance</div>
+        <div id="balanceAmount" style="font-size:26px;font-weight:700;color:var(--text);font-family:var(--mono)">—</div>
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-size:11px;color:var(--text-hint)" id="balanceTime"></div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;max-width:180px;word-break:break-word" id="balanceRaw"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-green btn-sm" onclick="checkBalance()">
+        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Check balance
+      </button>
+      <button class="btn btn-sm" onclick="checkBalanceUSSD('*100#')">*100#</button>
+      <button class="btn btn-sm" onclick="checkBalanceUSSD('*143#')">*143#</button>
+      <button class="btn btn-sm" onclick="checkBalanceUSSD('*143*1#')">*143*1#</button>
+    </div>
+  </div>
+
+  <div class="sim-card">
     <h3>AT command log</h3>
     <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
     <div class="at-log" id="atLog">Waiting for connection…</div>
@@ -957,12 +981,14 @@ function handleUSSDResponse(line) {
   // Format: +CUSD: <status>,"<message>",<dcs>
   const msgMatch = line.match(/"([^"]*)"/);
   const body = msgMatch ? msgMatch[1] : line;
+  // If a balance check is pending, route the reply to the balance display
+  if (balanceCheckPending) { handleBalanceResponse(body); return; }
   const time = nowStr();
   const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-?load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala|denied/i.test(body);
   const status = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
-  const numMatch = body.match(/09\d{9}/);
-  const loadedNum = numMatch ? numMatch[0] : null;
+  const numMatch = body.match(/09\d{9}/) || body.match(/9\d{9}/);
+  const loadedNum = numMatch ? (numMatch[0].startsWith('0') ? numMatch[0] : '0' + numMatch[0]) : null;
   const balMatch = body.match(/balance is P([\d.]+)/i);
   const balNote = balMatch ? ` | Wallet: \u20b1${balMatch[1]}` : '';
 
@@ -1000,6 +1026,42 @@ async function sendAT(cmd) {
   const com = activeCOM();
   if (!com) { showToast('No active COM port'); return; }
   await sendATOnCOM(com, cmd);
+}
+
+// Balance check
+let balanceCheckPending = false;
+
+async function checkBalance() {
+  await checkBalanceUSSD('*100#');
+}
+
+async function checkBalanceUSSD(code) {
+  const com = activeCOM();
+  if (!com) { showToast('Connect a COM port first'); return; }
+  balanceCheckPending = true;
+  document.getElementById('balanceAmount').textContent = 'checking...';
+  document.getElementById('balanceAmount').style.color = 'var(--text-hint)';
+  document.getElementById('balanceRaw').textContent = '';
+  atLog('Checking balance via ' + code, 'sent');
+  await sendATOnCOM(com, 'AT+CUSD=1,"' + code + '",15');
+}
+
+function handleBalanceResponse(body) {
+  const match = body.match(/(?:balance(?:\s+is)?\s*(?:P|PHP|₱)?|(?:P|PHP|₱))\s*([\d,]+\.\d{2})/i) || body.match(/([\d,]+\.\d{2})/);
+  const amtEl = document.getElementById('balanceAmount');
+  const rawEl = document.getElementById('balanceRaw');
+  const timeEl = document.getElementById('balanceTime');
+  if (match) {
+    amtEl.textContent = '₱' + match[1].replace(/,/g, '');
+    amtEl.style.color = 'var(--green-dark)';
+  } else {
+    amtEl.textContent = 'See raw';
+    amtEl.style.color = 'var(--text)';
+  }
+  rawEl.textContent = body;
+  timeEl.textContent = nowStr();
+  balanceCheckPending = false;
+  showToast(match ? '💰 Balance: ₱' + match[1] : '📩 Balance reply received');
 }
 
 function sendManualAT() {
