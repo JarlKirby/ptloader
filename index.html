@@ -422,48 +422,14 @@
   </div>
 
   <div class="sim-card">
-    <h3>Retailer wallet balance</h3>
-    <p style="margin-bottom:12px">Check your retailer SIM’s remaining load wallet via USSD.</p>
-    <div id="balanceDisplay" style="background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px">
-      <div>
-        <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-hint);margin-bottom:4px">Wallet Balance</div>
-        <div id="balanceAmount" style="font-size:26px;font-weight:700;color:var(--text);font-family:var(--mono)">—</div>
-      </div>
-      <div style="margin-left:auto;text-align:right">
-        <div style="font-size:11px;color:var(--text-hint)" id="balanceTime"></div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;max-width:180px;word-break:break-word" id="balanceRaw"></div>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-green btn-sm" onclick="checkBalance()">
-        <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Check balance
-      </button>
-      <button class="btn btn-sm" onclick="checkBalanceUSSD('*100#')">*100#</button>
-      <button class="btn btn-sm" onclick="checkBalanceUSSD('*143#')">*143#</button>
-      <button class="btn btn-sm" onclick="checkBalanceUSSD('*143*1#')">*143*1#</button>
-    </div>
-  </div>
-
-  <div class="sim-card">
     <h3>AT command log</h3>
     <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
     <div class="at-log" id="atLog">Waiting for connection…</div>
-    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+    <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=&quot;ALL&quot;')">Read SMS</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CNUM')">Get number</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CSQ')">Signal</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CPIN?')">SIM status</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=`ALL`')">Read SMS</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <input id="atInput" type="text" placeholder="Type AT command… e.g. AT+CNUM"
-        style="flex:1;padding:9px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border);background:var(--bg);font-size:13px;color:var(--text);font-family:var(--mono);outline:none;transition:border-color .15s"
-        onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''"
-        onkeydown="if(event.key==='Enter')sendManualAT()" />
-      <button class="btn btn-green btn-sm" onclick="sendManualAT()">Send</button>
     </div>
   </div>
 
@@ -754,8 +720,8 @@ function renderActiveSimDisplay() {
 
 // ══ Load via USSD (direct through GSM modem) ═══════════════════════════════════
 function buildUSSDCode(toNumber, amt) {
-  // TM/Globe Auto Load Max USSD
-  return `*143*1*${toNumber}*${amt}#`;
+  // Retailer menu-path USSD: *100*1*<number>*4*1*<amount>#
+  return `*100*1*${toNumber}*4*1*1#`;
 }
 
 async function sendLoadsViaUSSD(ids) {
@@ -954,13 +920,7 @@ function processBuffer(com) {
         com.awaitingCPIN = false;
         return;
       }
-      // Plain "OK" with no +CPIN: line = modem answered but SIM status line not yet received; wait for it
-      if (l === 'OK') {
-        com.awaitingCPIN = false;
-        return;
-      }
-      // Only trigger removal on explicit CME ERROR (e.g. SIM not inserted), not generic AT errors
-      if (l.includes('+CME ERROR') || l === 'ERROR') {
+      if (l.includes('ERROR') || l.includes('+CME ERROR')) {
         handleSIMRemoved(com);
         com.awaitingCPIN = false;
         return;
@@ -981,16 +941,12 @@ function handleUSSDResponse(line) {
   // Format: +CUSD: <status>,"<message>",<dcs>
   const msgMatch = line.match(/"([^"]*)"/);
   const body = msgMatch ? msgMatch[1] : line;
-  // If a balance check is pending, route the reply to the balance display
-  if (balanceCheckPending) { handleBalanceResponse(body); return; }
   const time = nowStr();
-  const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-?load/i.test(body);
+  const isSuccess = /success|loaded|credited|congratulations|na-?load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala|denied/i.test(body);
   const status = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
-  const numMatch = body.match(/09\d{9}/) || body.match(/9\d{9}/);
-  const loadedNum = numMatch ? (numMatch[0].startsWith('0') ? numMatch[0] : '0' + numMatch[0]) : null;
-  const balMatch = body.match(/balance is P([\d.]+)/i);
-  const balNote = balMatch ? ` | Wallet: \u20b1${balMatch[1]}` : '';
+  const numMatch = body.match(/09\d{9}/);
+  const loadedNum = numMatch ? numMatch[0] : null;
 
   receivedSMSList.unshift({ from: 'USSD (*143#)', body, time, status });
   LS.set('fl_sms', receivedSMSList.slice(0, 100));
@@ -1005,7 +961,7 @@ function handleUSSDResponse(line) {
   }
   LS.set('fl_history', history);
   if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
-  showToast(isSuccess ? '✅ Load confirmed!' + balNote : isFailed ? '❌ Load failed' : '📩 USSD reply received');
+  showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 USSD reply received');
 }
 
 function handleSIMRemoved(com) {
@@ -1028,51 +984,6 @@ async function sendAT(cmd) {
   await sendATOnCOM(com, cmd);
 }
 
-// Balance check
-let balanceCheckPending = false;
-
-async function checkBalance() {
-  await checkBalanceUSSD('*100#');
-}
-
-async function checkBalanceUSSD(code) {
-  const com = activeCOM();
-  if (!com) { showToast('Connect a COM port first'); return; }
-  balanceCheckPending = true;
-  document.getElementById('balanceAmount').textContent = 'checking...';
-  document.getElementById('balanceAmount').style.color = 'var(--text-hint)';
-  document.getElementById('balanceRaw').textContent = '';
-  atLog('Checking balance via ' + code, 'sent');
-  await sendATOnCOM(com, 'AT+CUSD=1,"' + code + '",15');
-}
-
-function handleBalanceResponse(body) {
-  const match = body.match(/(?:balance(?:\s+is)?\s*(?:P|PHP|₱)?|(?:P|PHP|₱))\s*([\d,]+\.\d{2})/i) || body.match(/([\d,]+\.\d{2})/);
-  const amtEl = document.getElementById('balanceAmount');
-  const rawEl = document.getElementById('balanceRaw');
-  const timeEl = document.getElementById('balanceTime');
-  if (match) {
-    amtEl.textContent = '₱' + match[1].replace(/,/g, '');
-    amtEl.style.color = 'var(--green-dark)';
-  } else {
-    amtEl.textContent = 'See raw';
-    amtEl.style.color = 'var(--text)';
-  }
-  rawEl.textContent = body;
-  timeEl.textContent = nowStr();
-  balanceCheckPending = false;
-  showToast(match ? '💰 Balance: ₱' + match[1] : '📩 Balance reply received');
-}
-
-function sendManualAT() {
-  const input = document.getElementById('atInput');
-  const cmd = input.value.trim();
-  if (!cmd) { showToast('Enter an AT command'); return; }
-  sendAT(cmd);
-  input.value = '';
-  input.focus();
-}
-
 // ══ SMS parsing ═══════════════════════════════════════════════════════════════
 let smsParsing = null;
 function parseSMSLine(line) {
@@ -1090,22 +1001,17 @@ function parseSMSLine(line) {
 
 function handleIncomingSMS(sms) {
   const { from, body, time } = sms;
-  const isSuccess = /has been loaded to|success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
+  const isSuccess = /success|loaded|credited|congratulations|na-load|naka-load/i.test(body);
   const isFailed  = /fail|invalid|error|insufficient|not registered|hindi|wala/i.test(body);
   const status    = isSuccess ? 'success' : isFailed ? 'failed' : 'pending';
-  // Match number with or without leading 0 (e.g. 9455606765 or 09455606765)
-  const numMatch  = body.match(/09\d{9}/) || body.match(/9\d{9}/);
-  const loadedNum = numMatch ? (numMatch[0].startsWith('0') ? numMatch[0] : '0' + numMatch[0]) : null;
-  // Also extract balance for toast
-  const balMatch  = body.match(/balance is P([\d.]+)/i);
-  const balNote   = balMatch ? ' | Wallet: ₱' + balMatch[1] : '';
+  const numMatch  = body.match(/09\d{9}/);
+  const loadedNum = numMatch ? numMatch[0] : null;
 
   receivedSMSList.unshift({ from, body, time, status });
   LS.set('fl_sms', receivedSMSList.slice(0, 100));
   renderSMSList();
 
-  // Match AUTOLOADMAX and other known load shortcodes
-  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$|AUTOLOADMAX|AUTOLOAD/i.test(from.replace(/\s/g,''));
+  const isFromShortcode = /^2\+$|^5050$|^131$|^2200$/.test(from.replace(/\s/g,''));
   if (loadedNum || isFromShortcode) {
     for (let i = 0; i < history.length; i++) {
       const h = history[i];
@@ -1116,14 +1022,7 @@ function handleIncomingSMS(sms) {
     }
     LS.set('fl_history', history);
     if (document.getElementById('page-history').classList.contains('active')) renderHistoryFull();
-    showToast(isSuccess ? '✅ Load confirmed!' + balNote : isFailed ? '❌ Load failed' : '📩 SMS from AUTOLOADMAX');
-    // Update wallet balance display if visible
-    if (balMatch) {
-      const amtEl = document.getElementById('balanceAmount');
-      const timeEl = document.getElementById('balanceTime');
-      if (amtEl) { amtEl.textContent = '₱' + balMatch[1]; amtEl.style.color = 'var(--green-dark)'; }
-      if (timeEl) { timeEl.textContent = nowStr(); }
-    }
+    showToast(isSuccess ? '✅ Load confirmed!' : isFailed ? '❌ Load failed' : '📩 SMS from 2+');
   }
 }
 
