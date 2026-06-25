@@ -755,7 +755,7 @@ function renderActiveSimDisplay() {
 // ══ Load via USSD (direct through GSM modem) ═══════════════════════════════════
 function buildUSSDCode(toNumber, amt) {
   // TM/Globe Auto Load Max USSD
-  return `*143*2*${toNumber}*${amt}#`;
+  return `*143*1*${toNumber}*${amt}#`;
 }
 
 async function sendLoadsViaUSSD(ids) {
