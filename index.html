@@ -425,11 +425,21 @@
     <h3>AT command log</h3>
     <p style="margin-bottom:10px">Raw communication with the SIM reader for debugging.</p>
     <div class="at-log" id="atLog">Waiting for connection…</div>
-    <div style="display:flex;gap:8px;margin-top:10px">
+    <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGL=&quot;ALL&quot;')">Read SMS</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CNUM')">Get number</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CSQ')">Signal</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CPIN?')">SIM status</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <input id="atInput" type="text" placeholder="Type AT command… e.g. AT+CNUM"
+        style="flex:1;padding:9px 12px;border-radius:var(--radius-md);border:0.5px solid var(--border);background:var(--bg);font-size:13px;color:var(--text);font-family:var(--mono);outline:none;transition:border-color .15s"
+        onfocus="this.style.borderColor='var(--green)'" onblur="this.style.borderColor=''"
+        onkeydown="if(event.key==='Enter')sendManualAT()" />
+      <button class="btn btn-green btn-sm" onclick="sendManualAT()">Send</button>
     </div>
   </div>
 
@@ -988,6 +998,15 @@ async function sendAT(cmd) {
   const com = activeCOM();
   if (!com) { showToast('No active COM port'); return; }
   await sendATOnCOM(com, cmd);
+}
+
+function sendManualAT() {
+  const input = document.getElementById('atInput');
+  const cmd = input.value.trim();
+  if (!cmd) { showToast('Enter an AT command'); return; }
+  sendAT(cmd);
+  input.value = '';
+  input.focus();
 }
 
 // ══ SMS parsing ═══════════════════════════════════════════════════════════════
