@@ -428,7 +428,7 @@
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="btn btn-sm" onclick="sendAT('AT')">Ping (AT)</button>
       <button class="btn btn-sm" onclick="sendAT('AT+CMGF=1')">Text mode</button>
-      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=`ALL`')">Read SMS</button>
+      <button class="btn btn-sm" onclick="sendAT('AT+CMGL=&quot;ALL&quot;')">Read SMS</button>
       <button class="btn btn-sm" onclick="document.getElementById('atLog').textContent=''">Clear log</button>
     </div>
   </div>
@@ -721,7 +721,7 @@ function renderActiveSimDisplay() {
 // ══ Load via USSD (direct through GSM modem) ═══════════════════════════════════
 function buildUSSDCode(toNumber, amt) {
   // Retailer menu-path USSD: *100*1*<number>*4*1*<amount>#
-  return `*100*1*${toNumber}*4*1*1#`;
+  return `*100*1*${toNumber}*4*1*${amt}#`;
 }
 
 async function sendLoadsViaUSSD(ids) {
@@ -920,7 +920,13 @@ function processBuffer(com) {
         com.awaitingCPIN = false;
         return;
       }
-      if (l.includes('ERROR') || l.includes('+CME ERROR')) {
+      // Plain "OK" with no +CPIN: line = modem answered but SIM status line not yet received; wait for it
+      if (l === 'OK') {
+        com.awaitingCPIN = false;
+        return;
+      }
+      // Only trigger removal on explicit CME ERROR (e.g. SIM not inserted), not generic AT errors
+      if (l.includes('+CME ERROR') || l === 'ERROR') {
         handleSIMRemoved(com);
         com.awaitingCPIN = false;
         return;
